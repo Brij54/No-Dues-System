@@ -1,0 +1,140 @@
+/* AG Grid Custom Theme - matches portal design */
+.ag-theme-custom {
+  --ag-background-color: var(--surface);
+  --ag-foreground-color: var(--text);
+  --ag-border-color: var(--border);
+  --ag-header-background-color: var(--surface);
+  --ag-header-foreground-color: var(--text-2);
+  --ag-odd-row-background-color: var(--surface);
+  --ag-row-hover-color: var(--surface-2);
+  --ag-selected-row-background-color: var(--accent-soft);
+  --ag-range-selection-border-color: var(--accent);
+  --ag-font-family: var(--font);
+  --ag-font-size: 13.5px;
+  --ag-header-height: 44px;
+  --ag-row-height: 44px;
+  --ag-border-radius: 0;
+  
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+}
+
+.ag-theme-custom .ag-header {
+  border-bottom: 1px solid var(--border);
+  font-weight: 500;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.ag-theme-custom .ag-header-cell {
+  padding: 0 16px;
+}
+
+.ag-theme-custom .ag-cell {
+  padding: 0 16px;
+  line-height: 44px;
+  border-right: none;
+}
+
+.ag-theme-custom .ag-row {
+  border-bottom: 1px solid var(--border);
+}
+
+.ag-theme-custom .ag-row:last-child {
+  border-bottom: none;
+}
+
+.ag-theme-custom .ag-paging-panel {
+  border-top: 1px solid var(--border);
+  padding: 12px 16px;
+  font-size: 12px;
+  color: var(--text-2);
+  background: var(--surface-2);
+}
+
+.ag-theme-custom .ag-paging-button {
+  color: var(--text-2);
+  transition: all 0.15s;
+  margin: 0 2px;
+}
+
+.ag-theme-custom .ag-paging-button:hover {
+  background: var(--surface);
+  color: var(--text);
+}
+
+.ag-theme-custom .ag-icon {
+  color: var(--text-3);
+}
+
+.ag-theme-custom .ag-filter {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px;
+  background: var(--surface);
+  box-shadow: var(--shadow-md);
+}
+
+.ag-theme-custom .ag-input-field-input {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 6px 10px;
+  font-size: 13px;
+  color: var(--text);
+}
+
+.ag-theme-custom .ag-input-field-input:focus {
+  border-color: var(--accent);
+  outline: none;
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+.ag-theme-custom .ag-floating-filter-input {
+  border: none;
+  border-bottom: 1px solid var(--border);
+  border-radius: 0;
+  padding: 8px 12px;
+  background: transparent;
+}
+
+.ag-theme-custom .ag-floating-filter-input:focus {
+  border-bottom-color: var(--accent);
+  box-shadow: none;
+}
+
+.ag-theme-custom .ag-header-cell-menu-button {
+  opacity: 0.5;
+  transition: opacity 0.15s;
+}
+
+.ag-theme-custom .ag-header-cell:hover .ag-header-cell-menu-button {
+  opacity: 1;
+}
+
+/* Pagination select */
+.ag-theme-custom select {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 4px 8px;
+  font-size: 12px;
+  color: var(--text);
+}
+
+/* Filter menu */
+.ag-theme-custom .ag-set-filter-list {
+  max-height: 200px;
+}
+
+.ag-theme-custom .ag-virtual-list-item {
+  padding: 6px 8px;
+  cursor: pointer;
+}
+
+.ag-theme-custom .ag-virtual-list-item:hover {
+  background: var(--surface-2);
+}

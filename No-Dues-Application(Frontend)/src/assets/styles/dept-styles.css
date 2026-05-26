@@ -1,0 +1,86 @@
+/* Department list (Department Details tab) */
+.dept-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.dept-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 18px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  text-align: left;
+  transition: all 0.15s;
+  color: var(--text);
+  width: 100%;
+  cursor: pointer;
+}
+.dept-row:hover {
+  border-color: var(--border-strong);
+  transform: translateX(2px);
+}
+.dept-row[data-status="pending"] { border-left: 3px solid var(--danger); }
+.dept-row[data-status="cleared"] { border-left: 3px solid var(--success); }
+
+/* Department detail page */
+.dept-detail-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 18px;
+  padding: 24px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+.dept-detail-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 14px;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+}
+.dept-detail-grid {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr;
+  gap: 20px;
+}
+@media (max-width: 768px) {
+  .dept-detail-grid { grid-template-columns: 1fr; }
+}
+
+/* Clearance items */
+.check-list {
+  display: flex;
+  flex-direction: column;
+}
+.check-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--border);
+}
+.check-row:last-child { border-bottom: none; }
+.check-pill {
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+}
+.check-pill.ok { background: var(--success-soft); color: var(--success-ink); }
+.check-pill.pending { background: var(--danger-soft); color: var(--danger-ink); }
+.check-pill.warn { background: var(--warning-soft); color: var(--warning-ink); }
+.check-label { font-size: 14px; font-weight: 500; }
+.check-note { font-size: 12.5px; color: var(--text-3); margin-top: 2px; }
+
+.tag-ok      { background: var(--success-soft); color: var(--success-ink); padding: 4px 10px; border-radius: 999px; font-size: 12px; font-weight: 500; }
+.tag-pending { background: var(--danger-soft);  color: var(--danger-ink);  padding: 4px 10px; border-radius: 999px; font-size: 12px; font-weight: 500; }
+.tag-warn    { background: var(--warning-soft); color: var(--warning-ink); padding: 4px 10px; border-radius: 999px; font-size: 12px; font-weight: 500; }

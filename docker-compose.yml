@@ -1,0 +1,96 @@
+services:
+  # ─────────────────────────────────────────────────────────────────────────────
+  # MySQL Database Service
+  # ─────────────────────────────────────────────────────────────────────────────
+  db:
+    image: mysql:8.0
+    container_name: no-dues-db
+    restart: always
+    environment:
+      MYSQL_DATABASE: no_dues
+      MYSQL_USER: root
+      MYSQL_PASSWORD: ${DB_PASSWORD:-5712}
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD:-5712}
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - no-dues-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u$$MYSQL_USER", "-p$$MYSQL_PASSWORD"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # Spring Boot Backend Service
+  # ─────────────────────────────────────────────────────────────────────────────
+  backend:
+    build:
+      context: ./No-Dues-Application(Backend)
+      dockerfile: Dockerfile
+    container_name: no-dues-backend
+    restart: always
+    expose:
+      - "8086"
+    ports:
+      - "8086:8086"
+    environment:
+      # Database connection string pointing to the db container
+      DB_URL: jdbc:mysql://db:3306/no_dues?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+      DB_USERNAME: root
+      DB_PASSWORD: ${DB_PASSWORD:-5712}
+      
+      # Active Spring Profile (local, staging, prod)
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-local}
+      
+      # Mail Configuration
+      MAIL_HOST: ${MAIL_HOST}
+      MAIL_PORT: ${MAIL_PORT}
+      MAIL_USERNAME: ${MAIL_USERNAME}
+      MAIL_PASSWORD: ${MAIL_PASSWORD}
+      
+      # Keycloak Configuration
+      KEYCLOAK_SERVER_URL: ${KEYCLOAK_SERVER_URL}
+      KEYCLOAK_REALM: ${KEYCLOAK_REALM}
+      KEYCLOAK_CLIENT_ID: ${KEYCLOAK_CLIENT_ID}
+      KEYCLOAK_CLIENT_SECRET: ${KEYCLOAK_CLIENT_SECRET}
+      
+      # Razorpay Configuration
+      RAZORPAY_KEY: ${RAZORPAY_KEY}
+      RAZORPAY_SECRET: ${RAZORPAY_SECRET}
+      RAZORPAY_WEBHOOK_SECRET: ${RAZORPAY_WEBHOOK_SECRET}
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - no-dues-network
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # React Nginx Frontend Service
+  # ─────────────────────────────────────────────────────────────────────────────
+  frontend:
+    build:
+      context: ./No-Dues-Application(Frontend)
+      dockerfile: Dockerfile
+    container_name: no-dues-frontend
+    restart: always
+    ports:
+      - "80:80"
+    environment:
+      # Browser-facing relative routes (handled via Nginx reverse proxy)
+      API_BASE_URL: /
+    depends_on:
+      - backend
+    networks:
+      - no-dues-network
+
+networks:
+  no-dues-network:
+    driver: bridge
+
+volumes:
+  mysql_data:
+    driver: local
