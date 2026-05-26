@@ -1,0 +1,16 @@
+# =========================================================================
+# STAGING SPRING PROFILE CONFIGURATION (application-staging.yml)
+# =========================================================================
+
+spring:
+  jpa:
+    hibernate:
+      ddl-auto: update  # Automatically update database structure for staging migrations
+    show-sql: true
+
+# Cleaner Staging Logging Level
+logging:
+  level:
+    root: INFO
+    com.example.no_due_v10: INFO
+    org.springframework.web: INFO

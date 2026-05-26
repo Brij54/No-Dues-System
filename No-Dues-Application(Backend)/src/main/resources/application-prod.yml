@@ -1,0 +1,16 @@
+# =========================================================================
+# PRODUCTION SPRING PROFILE CONFIGURATION (application-prod.yml)
+# =========================================================================
+
+spring:
+  jpa:
+    hibernate:
+      ddl-auto: validate  # CRITICAL: Validate schema only! Do NOT mutate production tables.
+    show-sql: false      # Turn off SQL dumps in production to maximize performance and security
+
+# Production Logging Configuration
+logging:
+  level:
+    root: WARN
+    com.example.no_due_v10: INFO
+    org.springframework.web: WARN
