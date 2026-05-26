@@ -2,3 +2,32 @@ target/
 .idea/
 *.iml
 .env
+.env.*
+.env.staging
+.env.prod
+src/main/resources/application-local.yml
+src/main/resources/application-local.yaml
+src/main/resources/application-local.properties
+
+# Compilation & Build outputs
+*.class
+*.jar
+*.war
+*.ear
+bin/
+
+# IDE / Editor Specific Files
+.settings/
+.classpath
+.project
+*.swp
+*.swo
+.DS_Store
+
+# Logs
+*.log
+logs/
+
+# Databases
+*.db
+*.sqlite
