@@ -19,6 +19,10 @@ export const studentsApi = {
   getById: (id: string) =>
     api.get<Student>(API.STUDENTS.BY_ID(id)),
 
+  /** GET /api/students/me */
+  getProfile: () =>
+    api.get<Student>(API.STUDENTS.ME),
+
   /** PUT /api/students/:id (SUPERADMIN) */
   update: (id: string, data: Partial<Student>) =>
     api.put<Student>(API.STUDENTS.BY_ID(id), data),

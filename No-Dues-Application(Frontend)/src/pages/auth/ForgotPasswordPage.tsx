@@ -257,7 +257,7 @@ export default function ForgotPasswordPage() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
-                  className="w-full px-4 py-3 bg-gray-100 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#2D88D4]"
+                  className="w-full px-4 py-3 bg-gray-100 border border-gray-200 rounded-xl text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#2D88D4]"
                 />
               </div>
 
@@ -299,7 +299,7 @@ export default function ForgotPasswordPage() {
                   value={otp}
                   onChange={(e) => setOtp(e.target.value.replace(/\D/g, ""))}
                   required
-                  className="w-full px-4 py-3 bg-gray-100 border border-gray-200 rounded-xl text-center tracking-[0.4em] text-lg font-semibold focus:outline-none focus:ring-2 focus:ring-[#2D88D4]"
+                  className="w-full px-4 py-3 bg-gray-100 border border-gray-200 rounded-xl text-center tracking-[0.4em] text-lg font-semibold text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#2D88D4]"
                 />
               </div>
 
@@ -341,7 +341,7 @@ export default function ForgotPasswordPage() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
-                  className="w-full px-4 py-3 bg-gray-100 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#2D88D4]"
+                  className="w-full px-4 py-3 bg-gray-100 border border-gray-200 rounded-xl text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#2D88D4]"
                 />
               </div>
 
@@ -352,7 +352,7 @@ export default function ForgotPasswordPage() {
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   required
-                  className="w-full px-4 py-3 bg-gray-100 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#2D88D4]"
+                  className="w-full px-4 py-3 bg-gray-100 border border-gray-200 rounded-xl text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#2D88D4]"
                 />
               </div>
 

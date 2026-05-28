@@ -67,6 +67,11 @@ public class StudentService {
     @Autowired()
     private KeycloakAuthService keycloakAuthService;
 
+    public Optional<Student> getStudentByPrincipal(Principal principal) {
+        String userId = keycloakAuthService.getUserId(principal);
+        return studentRepository.findById(userId);
+    }
+
     /*
  * Operation    : Get Student Pending Dues Summary
  * Comment      : Fetches the authenticated student's totalPendingAmount and noDueStatus using their Keycloak-derived userId.

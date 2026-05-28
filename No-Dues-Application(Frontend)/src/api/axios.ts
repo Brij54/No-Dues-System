@@ -1,8 +1,37 @@
 import axios from 'axios';
 import toast from 'react-hot-toast';
 
+declare global {
+  interface Window {
+    _env_?: {
+      REACT_APP_API_URL?: string;
+      REACT_APP_KEYCLOAK_CLIENT_ID?: string;
+    };
+  }
+}
+
+const getBaseURL = (): string => {
+  if (typeof window !== 'undefined') {
+    // 1. Prioritize dynamic runtime environment variables from Docker/Nginx
+    if (window._env_?.REACT_APP_API_URL) {
+      return window._env_.REACT_APP_API_URL;
+    }
+
+    // 2. Secondary fallback via hostname detection
+    const hostname = window.location.hostname;
+    if (hostname === 'nodues.staging.iiitb.net') {
+      return 'https://noduesapi.staging.iiitb.net';
+    }
+    if (hostname === 'nodues.iiitb.net') {
+      return 'https://noduesapi.iiitb.net';
+    }
+  }
+  // 3. Static build-time/development fallback
+  return process.env.REACT_APP_API_URL || '';
+};
+
 const api = axios.create({
-  baseURL: process.env.REACT_APP_API_URL || '',
+  baseURL: getBaseURL(),
   headers: { 'Content-Type': 'application/json' },
   timeout: 15000,
 });

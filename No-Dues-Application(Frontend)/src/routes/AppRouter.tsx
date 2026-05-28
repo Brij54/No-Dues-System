@@ -22,6 +22,7 @@ import StudentDashboard from '../pages/student/StudentDashboard';
 import DuesPage from '../pages/student/DuesPage';
 import ProfilePage from '../pages/student/ProfilePage';
 import PaymentStatus from '../pages/student/PaymentStatus';
+import FeedbackPage from '../pages/student/FeedbackPage';
 
 // Department pages
 import DeptDashboard from '../pages/department/DeptDashboard';
@@ -78,6 +79,7 @@ export default function AppRouter() {
         >
           <Route path="student" element={<StudentDashboard />} />
           <Route path="student/dues" element={<DuesPage />} />
+          <Route path="student/feedback" element={<FeedbackPage />} />
           <Route path="student/profile" element={<ProfilePage />} />
           <Route path="student/payment/status/:orderId" element={<PaymentStatus />} />
         </Route>

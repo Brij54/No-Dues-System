@@ -1,6 +1,7 @@
 import { Outlet, NavLink, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { useAuth } from "../hooks/useAuth";
+import { useAuthStore } from "../store/auth.store";
 
 import { Role } from "../constants/roles";
 import Avatar from "../components/ui/Avatar";
@@ -15,11 +16,11 @@ import {
   LogOut,
   ChevronLeft,
   ChevronRight,
-  Bell,
   GraduationCap,
   CreditCard,
   Receipt,
   Menu,
+  ClipboardList,
 } from "lucide-react";
 import { clsx } from "clsx";
 
@@ -104,6 +105,11 @@ function getSidebarItems(
       icon: <LayoutDashboard className="w-5 h-5" />,
     },
     {
+      label: "Feedback Form",
+      path: "/student/feedback",
+      icon: <ClipboardList className="w-5 h-5" />,
+    },
+    {
       label: "Profile",
       path: "/student/profile",
       icon: <Users className="w-5 h-5" />,
@@ -124,11 +130,49 @@ export default function DashboardLayout() {
     navigate("/login");
   };
 
+  const getDepartmentLabel = (): string => {
+    const managedDepts = useAuthStore.getState().getManagedDepartments();
+    if (managedDepts.length === 0) return "";
+
+    const roleUpper = managedDepts[0].toUpperCase();
+
+    // Exact matches
+    if (roleUpper === 'ACADEMICS_DT_DEPARTMENT') return "Academics (DT)";
+    if (roleUpper === 'ACADEMICS_MS_PHD_DEPARTMENT') return "Academics (MS & PHD)";
+    if (roleUpper === 'LAB_CEEMS_ASSISTANT') return "Lab (CEEMS)";
+    if (roleUpper === 'LAB_HIDES_ASSISTANT') return "Lab (HIDES)";
+    if (roleUpper === 'LAB_PHYSICS_ASSISTANT') return "Lab (Physics)";
+    if (roleUpper === 'HOSTEL_FEMALE_WARDEN') return "Hostel (Female)";
+    if (roleUpper === 'HOSTEL_MALE_WARDEN') return "Hostel (Male)";
+    if (roleUpper === 'CLUBS_DEPARTMENT') return "Club";
+    if (roleUpper === 'FINANCE_DEPARTMENT') return "Finance";
+    if (roleUpper === 'IT_DEPARTMENT') return "IT";
+    if (roleUpper === 'LIBRARY_LIBRARIAN') return "Library";
+    if (roleUpper === 'PLACEMENT_COMMITTEE') return "Placement";
+    if (roleUpper === 'SPORTS_COACH') return "Sports";
+    if (roleUpper === 'PENDING_DEGREE_DEPARTMENT') return "Pending Degree";
+    if (roleUpper === 'PENALTY_DEPARTMENT') return "Penalty";
+
+    // Fallback cleaning
+    return roleUpper
+      .replace(/_DEPARTMENT$/, "")
+      .replace(/_ASSISTANT$/, "")
+      .replace(/_WARDEN$/, "")
+      .replace(/_LIBRARIAN$/, "")
+      .replace(/_COACH$/, "")
+      .replace(/_COMMITTEE$/, "")
+      .split("_")
+      .map(word => word.charAt(0) + word.slice(1).toLowerCase())
+      .join(" ");
+  };
+
+  const deptLabel = primaryRole === Role.DEPARTMENT_ADMIN ? getDepartmentLabel() : "";
+
   const roleLabel =
     primaryRole === Role.SUPER_ADMIN
       ? "Super Admin"
       : primaryRole === Role.DEPARTMENT_ADMIN
-        ? "Department Admin"
+        ? (deptLabel ? `${deptLabel} Admin` : "Department Admin")
         : "Student";
 
   const userName =
@@ -254,10 +298,6 @@ export default function DashboardLayout() {
           </div>
           <div className="flex items-center gap-2">
             <ThemeToggle />
-            <button className="p-2 rounded-lg text-slate-500 hover:text-slate-700 hover:bg-slate-100 dark:text-slate-400 dark:hover:text-white dark:hover:bg-slate-700 transition relative">
-              <Bell className="w-5 h-5" />
-              <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full" />
-            </button>
             <div className="hidden sm:flex items-center gap-2 pl-2 ml-2 border-l border-slate-200 dark:border-slate-700">
               <Avatar name={userName} size="sm" />
               <div className="min-w-0">

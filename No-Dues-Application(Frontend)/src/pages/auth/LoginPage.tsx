@@ -229,7 +229,7 @@ export default function LoginPage() {
               placeholder="Enter Email ID"
               disabled={isSubmitting}
               {...register('email')}
-              className="w-full px-4 py-3 bg-gray-100 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#2D88D4]"
+              className="w-full px-4 py-3 bg-gray-100 border border-gray-200 rounded-xl text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#2D88D4]"
             />
 
             {errors.email && (
@@ -249,7 +249,7 @@ export default function LoginPage() {
                 placeholder="Enter Password"
                 disabled={isSubmitting}
                 {...register('password')}
-                className="w-full px-4 py-3 pr-12 bg-gray-100 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#2D88D4]"
+                className="w-full px-4 py-3 pr-12 bg-gray-100 border border-gray-200 rounded-xl text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#2D88D4]"
               />
 
               <button

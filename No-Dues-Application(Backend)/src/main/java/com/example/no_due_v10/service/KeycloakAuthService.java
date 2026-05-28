@@ -72,6 +72,19 @@ public class KeycloakAuthService {
         Object savedEntity = null;
 
         try {
+            // Check if user already exists in Keycloak
+            RealmResource keycloakRealm = keycloakAdmin.realm(realm);
+            String emailStr = (String) authMap.get("email");
+            String usernameStr = (String) authMap.get("userName");
+            List<UserRepresentation> existingUsers = keycloakRealm.users().searchByEmail(emailStr, true);
+            if (existingUsers == null || existingUsers.isEmpty()) {
+                existingUsers = keycloakRealm.users().search(usernameStr, true);
+            }
+            if (existingUsers != null && !existingUsers.isEmpty()) {
+                log.info("User with email/username {} already exists in Keycloak. Skipping registration.", emailStr);
+                return "User already exists";
+            }
+
             // 1. Get the Entity Class dynamically
             String entityClassNameStr = "com.example.no_due_v10.entity." + resourceName;
             Class<?> entityClass = Class.forName(entityClassNameStr);
@@ -101,11 +114,12 @@ public class KeycloakAuthService {
             user.setFirstName((String) authMap.get("firstName"));
             user.setLastName((String) authMap.get("lastName"));
 
-            // Force user to change password on first login
-            user.setRequiredActions(Collections.singletonList("UPDATE_PASSWORD"));
+            // Allow immediate login by clearing required actions and making password permanent
+            user.setRequiredActions(Collections.emptyList());
+            user.setEmailVerified(true); // Auto-verify email for immediate login readiness
 
             CredentialRepresentation credential = new CredentialRepresentation();
-            credential.setTemporary(true); // Using temporary=true works hand-in-hand with UPDATE_PASSWORD
+            credential.setTemporary(false); // Make password permanent
             credential.setType(CredentialRepresentation.PASSWORD);
             credential.setValue(generatedPassword);
             user.setCredentials(Collections.singletonList(credential));
@@ -142,9 +156,7 @@ public class KeycloakAuthService {
             // 7. Assign default role
             if (defaultRole != null && !defaultRole.trim().isEmpty()) {
                 try {
-                    RoleRepresentation defaultRoleRep = realmResource.roles().get(defaultRole).toRepresentation();
-                    realmResource.users().get(keycloakUserId).roles().realmLevel()
-                            .add(Collections.singletonList(defaultRoleRep));
+                    assignDefaultClientRole(realmResource, keycloakUserId, defaultRole);
                     log.info("Assigned default role '{}' to new user {} (keycloakId: {})", defaultRole, authMap.get("userName"), keycloakUserId);
                 } catch (Exception roleEx) {
                     log.error("Could not assign default role '{}' to user {}: {}", defaultRole, keycloakUserId, roleEx.getMessage());
@@ -195,6 +207,19 @@ public class KeycloakAuthService {
             Object savedEntity = null;
 
             try {
+                // Check if user already exists in Keycloak
+                RealmResource keycloakRealm = keycloakAdmin.realm(realm);
+                String emailStr = (String) authMap.get("email");
+                String usernameStr = (String) authMap.get("userName");
+                List<UserRepresentation> existingUsers = keycloakRealm.users().searchByEmail(emailStr, true);
+                if (existingUsers == null || existingUsers.isEmpty()) {
+                    existingUsers = keycloakRealm.users().search(usernameStr, true);
+                }
+                if (existingUsers != null && !existingUsers.isEmpty()) {
+                    log.info("User with email/username {} already exists in Keycloak. Skipping registration.", emailStr);
+                    return "User already exists";
+                }
+
                 // 1. Get the Entity Class dynamically
                 String entityClassNameStr = "com.example.no_due_v10.entity." + resourceName;
                 Class<?> entityClass = Class.forName(entityClassNameStr);
@@ -224,11 +249,12 @@ public class KeycloakAuthService {
                 user.setFirstName((String) authMap.get("firstName"));
                 user.setLastName((String) authMap.get("lastName"));
 
-                // Force user to change password on first login
-                user.setRequiredActions(Collections.singletonList("UPDATE_PASSWORD"));
+                // Allow immediate login by clearing required actions and making password permanent
+                user.setRequiredActions(Collections.emptyList());
+                user.setEmailVerified(true); // Auto-verify email for immediate login readiness
 
                 CredentialRepresentation credential = new CredentialRepresentation();
-                credential.setTemporary(true); // Using temporary=true works hand-in-hand with UPDATE_PASSWORD
+                credential.setTemporary(false); // Make password permanent
                 credential.setType(CredentialRepresentation.PASSWORD);
                 credential.setValue(generatedPassword);
                 user.setCredentials(Collections.singletonList(credential));
@@ -265,9 +291,7 @@ public class KeycloakAuthService {
                 // 7. Assign default role
                 if (defaultRole != null && !defaultRole.trim().isEmpty()) {
                     try {
-                        RoleRepresentation defaultRoleRep = realmResource.roles().get(defaultRole).toRepresentation();
-                        realmResource.users().get(keycloakUserId).roles().realmLevel()
-                                .add(Collections.singletonList(defaultRoleRep));
+                        assignDefaultClientRole(realmResource, keycloakUserId, defaultRole);
                         log.info("Assigned default role '{}' to new user {} (keycloakId: {})", defaultRole, authMap.get("userName"), keycloakUserId);
                     } catch (Exception roleEx) {
                         log.error("Could not assign default role '{}' to user {}: {}", defaultRole, keycloakUserId, roleEx.getMessage());
@@ -428,6 +452,26 @@ public class KeycloakAuthService {
     // INTERNAL HELPERS
     // -------------------------------------------------------------------------
 
+    private void assignDefaultClientRole(RealmResource realmResource, String keycloakUserId, String defaultRoleName) {
+        List<ClientRepresentation> clients = realmResource.clients().findByClientId(clientId);
+        if (clients == null || clients.isEmpty()) {
+            throw new RuntimeException("Client not found: " + clientId);
+        }
+        String clientUuid = clients.get(0).getId();
+
+        RoleRepresentation defaultRoleRep = realmResource.clients()
+                .get(clientUuid)
+                .roles()
+                .get(defaultRoleName)
+                .toRepresentation();
+
+        realmResource.users()
+                .get(keycloakUserId)
+                .roles()
+                .clientLevel(clientUuid)
+                .add(Collections.singletonList(defaultRoleRep));
+    }
+
     private KeycloakAuthResponse fetchToken(String username, String password) {
         String tokenUrl = keycloakAuthServerUrl
                 + "/realms/" + realm
@@ -526,6 +570,19 @@ public class KeycloakAuthService {
                 Object savedEntity = null;
 
                 try {
+                    // Check if user already exists in Keycloak
+                    RealmResource keycloakRealm = keycloakAdmin.realm(realm);
+                    String emailStr = (String) authMap.get("email");
+                    String usernameStr = (String) authMap.get("userName");
+                    List<UserRepresentation> existingUsers = keycloakRealm.users().searchByEmail(emailStr, true);
+                    if (existingUsers == null || existingUsers.isEmpty()) {
+                        existingUsers = keycloakRealm.users().search(usernameStr, true);
+                    }
+                    if (existingUsers != null && !existingUsers.isEmpty()) {
+                        log.info("User with email/username {} already exists in Keycloak. Skipping creation and email.", emailStr);
+                        results.add(authMap.get("userName") + " -> User already exists");
+                        continue;
+                    }
 
                     // 1. Get Entity Class dynamically
                     String entityClassNameStr =
@@ -574,14 +631,14 @@ public class KeycloakAuthService {
                     user.setFirstName((String) authMap.get("firstName"));
                     user.setLastName((String) authMap.get("lastName"));
 
-                    // Force password update
-                    user.setRequiredActions(
-                            Collections.singletonList("UPDATE_PASSWORD"));
+                    // Allow immediate login by clearing required actions and making password permanent
+                    user.setRequiredActions(Collections.emptyList());
+                    user.setEmailVerified(true); // Auto-verify email for immediate login readiness
 
                     CredentialRepresentation credential =
                             new CredentialRepresentation();
 
-                    credential.setTemporary(true);
+                    credential.setTemporary(false); // Make password permanent
                     credential.setType(CredentialRepresentation.PASSWORD);
                     credential.setValue(generatedPassword);
 
@@ -674,16 +731,7 @@ public class KeycloakAuthService {
 
                         try {
 
-                            RoleRepresentation defaultRoleRep =
-                                    realmResource.roles()
-                                            .get(defaultRole)
-                                            .toRepresentation();
-
-                            realmResource.users()
-                                    .get(keycloakUserId)
-                                    .roles()
-                                    .realmLevel()
-                                    .add(Collections.singletonList(defaultRoleRep));
+                            assignDefaultClientRole(realmResource, keycloakUserId, defaultRole);
 
                             log.info(
                                     "Assigned role '{}' to user {}",

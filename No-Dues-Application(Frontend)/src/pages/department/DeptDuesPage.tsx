@@ -138,9 +138,35 @@ export default function DeptDuesPage() {
 
   const adminDepartments = departments.filter((d) =>
     managedDeptNames.some((m) => {
-      const roleTokens = m.toUpperCase().split('_').filter(t => t && t !== 'DEPARTMENT' && t !== 'DEPT');
-      const deptTokens = d.name.toUpperCase().split(/[\s_]+/).filter(t => t && t !== 'DEPARTMENT' && t !== 'DEPT');
-      return roleTokens.some(rt => deptTokens.some(dt => rt === dt));
+      const roleUpper = m.toUpperCase();
+      const deptUpper = d.name.toUpperCase();
+      
+      // 1. Direct precise mappings
+      if (roleUpper === 'ACADEMICS_DT_DEPARTMENT' && deptUpper.includes('ACADEMICS') && (deptUpper.includes('DT') || deptUpper.includes('M.TECH') || deptUpper.includes('IMTECH'))) return true;
+      if (roleUpper === 'ACADEMICS_MS_PHD_DEPARTMENT' && deptUpper.includes('ACADEMICS') && (deptUpper.includes('MS') || deptUpper.includes('PHD') || deptUpper.includes('PH.D'))) return true;
+      if (roleUpper === 'LAB_CEEMS_ASSISTANT' && deptUpper.includes('LAB') && deptUpper.includes('CEEMS')) return true;
+      if (roleUpper === 'LAB_HIDES_ASSISTANT' && deptUpper.includes('LAB') && deptUpper.includes('HIDES')) return true;
+      if (roleUpper === 'LAB_PHYSICS_ASSISTANT' && deptUpper.includes('LAB') && deptUpper.includes('PHYSICS')) return true;
+      if (roleUpper === 'HOSTEL_FEMALE_WARDEN' && deptUpper.includes('HOSTEL') && deptUpper.includes('FEMALE')) return true;
+      if (roleUpper === 'HOSTEL_MALE_WARDEN' && deptUpper.includes('HOSTEL') && deptUpper.includes('MALE')) return true;
+      
+      // 2. Standard roles (fallback or legacy)
+      if (roleUpper === 'CLUBS_DEPARTMENT' && deptUpper.includes('CLUB')) return true;
+      if (roleUpper === 'FINANCE_DEPARTMENT' && deptUpper.includes('FINANCE')) return true;
+      if (roleUpper === 'IT_DEPARTMENT' && deptUpper.includes('IT')) return true;
+      if (roleUpper === 'LIBRARY_LIBRARIAN' && deptUpper.includes('LIBRARY')) return true;
+      if (roleUpper === 'PLACEMENT_COMMITTEE' && deptUpper.includes('PLACEMENT')) return true;
+      if (roleUpper === 'SPORTS_COACH' && deptUpper.includes('SPORTS')) return true;
+      if (roleUpper === 'PENDING_DEGREE_DEPARTMENT' && deptUpper.includes('PENDING') && deptUpper.includes('DEGREE')) return true;
+      if (roleUpper === 'PENALTY_DEPARTMENT' && deptUpper.includes('PENALTY')) return true;
+
+      // 3. Backward compatibility split token fallback
+      const roleTokens = roleUpper.split('_').filter(t => t && t !== 'DEPARTMENT' && t !== 'DEPT' && t !== 'ASSISTANT' && t !== 'WARDEN' && t !== 'LIBRARIAN' && t !== 'COACH' && t !== 'COMMITTEE');
+      const deptTokens = deptUpper.split(/[\s_()&,./+-]+/).filter(t => t && t !== 'DEPARTMENT' && t !== 'DEPT' && t !== 'LAB' && t !== 'HOSTEL' && t !== 'ACADEMICS');
+      if (roleTokens.length > 0 && deptTokens.length > 0) {
+        return roleTokens.some(rt => deptTokens.some(dt => rt === dt));
+      }
+      return false;
     })
   );
   const availableDepts = adminDepartments.length > 0 ? adminDepartments : departments;
@@ -284,16 +310,20 @@ export default function DeptDuesPage() {
         const row         = data[i];
         const rollNumber  = (row['Roll Number']   || '').toString().trim();
         const description = (row['Remark']        || '').toString().trim();
-        const amount      = Number(row['Amount'])  || 0;
+        const rawAmount   = row['Amount'];
+        const amount      = Number(rawAmount);
         // Preserve the status string exactly as typed in the spreadsheet
         const noDuesStatus = (row['No Dues Status'] || '').toString().trim();
 
         let rowStatus: 'success' | 'failed' = 'success';
         let error: string | undefined;
 
-        if (!rollNumber || !description) {
+        if (!rollNumber) {
           rowStatus = 'failed';
-          error     = 'Missing required fields (Roll Number, Remark)';
+          error     = 'Missing required field: Roll Number';
+        } else if (rawAmount === undefined || rawAmount === null || rawAmount === '' || isNaN(amount) || amount <= 0) {
+          rowStatus = 'failed';
+          error     = 'Amount must be a number greater than 0';
         } else if (noDuesStatus && !(BULK_VALID_STATUSES as readonly string[]).includes(noDuesStatus)) {
           rowStatus = 'failed';
           error     = `Invalid No Dues Status "${noDuesStatus}". Allowed: No-Dues, Dues-Pending.`;
@@ -725,7 +755,7 @@ export default function DeptDuesPage() {
             <p className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Expected Excel Columns</p>
             <div className="flex flex-wrap gap-2">
               {['Roll Number', 'Name', 'Email', 'No Dues Status', 'Amount', 'Remark'].map((col) => {
-                const isRequired = col === 'Roll Number' || col === 'Remark';
+                const isRequired = col === 'Roll Number';
                 return (
                   <span
                     key={col}
@@ -783,7 +813,7 @@ export default function DeptDuesPage() {
                 <table className="w-full text-xs text-left text-slate-700 dark:text-slate-300">
                   <thead className="bg-slate-50 dark:bg-slate-800/80 text-slate-600 dark:text-slate-400 border-b border-slate-200 dark:border-slate-700">
                     <tr>
-                      {['Roll Number', 'Description', 'Amount', 'No Dues Status', 'Row Status'].map((h) => (
+                      {['Roll Number', 'No Dues Status', 'Amount', 'Remarks', 'Row Status'].map((h) => (
                         <th key={h} className="px-4 py-3 font-semibold">{h}</th>
                       ))}
                     </tr>
@@ -792,8 +822,6 @@ export default function DeptDuesPage() {
                     {bulkPreview.data.map((row, i) => (
                       <tr key={i} className={row.rowStatus === 'failed' ? 'bg-red-50/20 dark:bg-red-950/5' : ''}>
                         <td className="px-4 py-3 font-mono font-medium">{row.rollNumber || '—'}</td>
-                        <td className="px-4 py-3 max-w-[160px] truncate">{row.description || '—'}</td>
-                        <td className="px-4 py-3 font-mono font-medium">{formatCurrency(row.amount)}</td>
                         <td className="px-4 py-3">
                           {row.noDuesStatus ? (
                             <span
@@ -808,6 +836,8 @@ export default function DeptDuesPage() {
                             </span>
                           ) : '—'}
                         </td>
+                        <td className="px-4 py-3 font-mono font-medium">{formatCurrency(row.amount)}</td>
+                        <td className="px-4 py-3 max-w-[160px] truncate">{row.description || '—'}</td>
                         <td className="px-4 py-3">
                           <StatusBadge status={row.rowStatus} />
                           {row.error && (

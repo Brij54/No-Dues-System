@@ -14,6 +14,7 @@ export const API = {
   },
   STUDENTS: {
     BASE: `${BASE}/students`,
+    ME: `${BASE}/students/me`,
     BY_ID: (id: string) => `${BASE}/students/${id}`,
     PENDING_AMOUNT: `${BASE}/students/pending-amount`,
     NO_DUE_STATUS: (id: string) => `${BASE}/students/${id}/no-due-status`,
@@ -43,5 +44,9 @@ export const API = {
     BY_STUDENT: (studentId: string) => `${BASE}/payments/admin/students/${studentId}/payments`,
     INITIATE: `${BASE}/payments/initiate/razorpay`,
     STATUS: (orderId: string) => `${BASE}/payments/status/${orderId}`,
+  },
+  FEEDBACK: {
+    BASE: `${BASE}/feedback`,
+    STATUS: `${BASE}/feedback/status`,
   },
 } as const;

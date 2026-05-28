@@ -27,9 +27,34 @@ export default function ProfilePage() {
       'CLUBS',
       'PLACEMENT',
       'PENALTY',
-      'PENDING_DEGREE'
+      'PENDING_DEGREE',
+      'LIBRARY_LIBRARIAN',
+      'HOSTEL_WARDEN',
+      'SPORTS_COACH',
+      'IT_DEPARTMENT',
+      'FINANCE_DEPARTMENT',
+      'LAB_ASSISTANT',
+      'ACADEMICS_DEPARTMENT',
+      'CLUBS_DEPARTMENT',
+      'PLACEMENT_COMMITTEE',
+      'PENALTY_DEPARTMENT',
+      'PENDING_DEGREE_DEPARTMENT',
+      'ACADEMICS_DT_DEPARTMENT',
+      'ACADEMICS_MS_PHD_DEPARTMENT',
+      'LAB_CEEMS_ASSISTANT',
+      'LAB_HIDES_ASSISTANT',
+      'LAB_PHYSICS_ASSISTANT',
+      'HOSTEL_FEMALE_WARDEN',
+      'HOSTEL_MALE_WARDEN'
     ];
-    const cleanRoles = (user?.resource_access?.['backend-api']?.roles || [])
+    const getClientId = (): string => {
+      if (typeof window !== 'undefined' && window._env_?.REACT_APP_KEYCLOAK_CLIENT_ID) {
+        return window._env_.REACT_APP_KEYCLOAK_CLIENT_ID;
+      }
+      return process.env.REACT_APP_KEYCLOAK_CLIENT_ID || 'backend-api';
+    };
+    const KEYCLOAK_CLIENT_ID = getClientId();
+    const cleanRoles = (user?.resource_access?.[KEYCLOAK_CLIENT_ID]?.roles || [])
       .filter(r => allowedRoles.includes(r.toUpperCase()))
       .join(', ') || '—';
     fields.push(['Roles', cleanRoles]);

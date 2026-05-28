@@ -1,5 +1,5 @@
 import { useEffect, useState, useMemo } from 'react';
-import { CreditCard, CheckCircle, Clock, Building2, HelpCircle, ArrowRight, AlertTriangle, Info, Bell } from 'lucide-react';
+import { CreditCard, CheckCircle, Clock, Building2, HelpCircle, ArrowRight, AlertTriangle, Info, Bell, ClipboardList } from 'lucide-react';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
 import { SkeletonCard } from '../../components/ui/Skeleton';
@@ -7,6 +7,7 @@ import Drawer from '../../components/ui/Drawer';
 import { studentsApi } from '../../api/students.api';
 import { duesApi } from '../../api/dues.api';
 import { paymentsApi, initiatePayment } from '../../api/payment.api';
+import { feedbackApi } from '../../api/feedback.api';
 import { formatCurrency, formatDate, formatDateTime } from '../../utils/format';
 import { loadRazorpayScript } from '../../utils/razorpay';
 import toast from 'react-hot-toast';
@@ -26,6 +27,7 @@ export default function StudentDashboard() {
   const [recentPayments, setRecentPayments] = useState<Payment[]>([]);
   const [allPayments, setAllPayments] = useState<Payment[]>([]);
   const [showPaymentsDrawer, setShowPaymentsDrawer] = useState(false);
+  const [feedbackSubmitted, setFeedbackSubmitted] = useState<boolean>(true);
 
   function computePendingAmount(due: Due): number {
     const s = (due.status ?? '').toLowerCase();
@@ -38,6 +40,14 @@ export default function StudentDashboard() {
   async function loadData() {
     setLoading(true);
     try {
+      // Check feedback submission status
+      try {
+        const feedbackStatusRes = await feedbackApi.checkStatus();
+        setFeedbackSubmitted(feedbackStatusRes.data.submitted);
+      } catch (err) {
+        console.error('Failed to load feedback status', err);
+      }
+
       const [summaryRes, allDuesRes, paymentsRes] = await Promise.allSettled([
         studentsApi.getDuesSummary(),
         duesApi.getAll(), // Will be filtered by backend based on JWT, or we filter here
@@ -86,7 +96,23 @@ export default function StudentDashboard() {
         setTotalPending(calculatedTotalPending);
 
         // Set default departments if none exist for UI completeness
-        const defaultDepts = ['Library', 'Hostel', 'Sports', 'IT', 'Finance'];
+        const defaultDepts = [
+          'Academics (DT, M.Tech & IMTech)',
+          'Club',
+          'Finance',
+          'Hostel (Female)',
+          'Hostel (Male)',
+          'IT',
+          'Library',
+          'Lab (CEEMS)',
+          'Lab (HIDES)',
+          'Lab (Physics)',
+          'Placement',
+          'Sports',
+          'Pending Degree',
+          'Penalty',
+          'Academics (MS & PHD)'
+        ];
         defaultDepts.forEach(d => {
           if (!grouped[d]) {
             grouped[d] = { pendingAmount: 0, totalAmount: 0, isCleared: true, remarks: 'No dues assigned' };
@@ -163,6 +189,7 @@ export default function StudentDashboard() {
   const totalDepts = deptEntries.length;
 
   const pct = totalDepts > 0 ? Math.round(((clearedCount + naCount) / totalDepts) * 100) : 0;
+  const isCleared = (noDueStatus === 'CLEARED' || totalPending === 0) && feedbackSubmitted;
 
   const filteredDepts = deptEntries.filter(d => {
     if (filter === 'ALL') return true;
@@ -192,13 +219,13 @@ export default function StudentDashboard() {
           <h1 className="text-3xl font-bold text-slate-900 dark:text-white tracking-tight">No-Dues Dashboard</h1>
         </div>
         <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full border text-sm font-medium
-          ${noDueStatus === 'CLEARED'
+          ${isCleared
             ? 'bg-emerald-50 border-emerald-200 text-emerald-700 dark:bg-emerald-900/20 dark:border-emerald-800 dark:text-emerald-400'
             : 'bg-amber-50 border-amber-200 text-amber-700 dark:bg-amber-900/20 dark:border-amber-800 dark:text-amber-400'
           }`}
         >
-          <span className={`w-2 h-2 rounded-full animate-pulse ${noDueStatus === 'CLEARED' ? 'bg-emerald-500' : 'bg-amber-500'}`}></span>
-          {noDueStatus === 'CLEARED' ? 'Fully Cleared' : 'Clearance Pending'}
+          <span className={`w-2 h-2 rounded-full animate-pulse ${isCleared ? 'bg-emerald-500' : 'bg-amber-500'}`}></span>
+          {isCleared ? 'Fully Cleared' : 'Clearance Pending'}
         </div>
       </div>
 
@@ -206,7 +233,7 @@ export default function StudentDashboard() {
       <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 md:p-8 shadow-sm border border-slate-200 dark:border-slate-700 flex flex-col md:flex-row gap-8 justify-between relative overflow-hidden">
         {/* Background decorative blob */}
         <div className={`absolute top-0 right-0 -mr-20 -mt-20 w-64 h-64 rounded-full blur-3xl opacity-50 z-0
-          ${noDueStatus === 'CLEARED'
+          ${isCleared
             ? 'bg-gradient-to-br from-emerald-100 to-emerald-50 dark:from-emerald-900/20 dark:to-slate-800'
             : 'bg-gradient-to-br from-amber-100 to-amber-50 dark:from-amber-900/20 dark:to-slate-800'
           }`}
@@ -229,8 +256,8 @@ export default function StudentDashboard() {
           </div>
           <p className="text-slate-600 dark:text-slate-300 text-sm mb-6 max-w-md">
             {totalPending > 0
-              ? <>You have <span className="font-semibold text-slate-900 dark:text-white">{pendingCount} departments</span> requiring action. Settle them to receive your no-dues certificate.</>
-              : <>All your dues are cleared. You are ready to receive your no-dues certificate.</>
+              ? <>You have <span className="font-semibold text-slate-900 dark:text-white">{pendingCount} departments</span> with pending dues. Pay them now to clear your dues. </>
+              : <>All your dues are cleared. </>
             }
           </p>
           <div className="flex gap-3">
@@ -284,6 +311,28 @@ export default function StudentDashboard() {
 
       {/* Alerts */}
       <div className="space-y-3">
+        {!feedbackSubmitted && (
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-amber-50 dark:bg-amber-950/30 p-5 rounded-2xl border border-amber-200 dark:border-amber-800/60 shadow-sm transition-all duration-300 hover:shadow-md">
+            <div className="flex items-start gap-3.5">
+              <div className="p-3 bg-amber-500 text-white rounded-xl flex-shrink-0">
+                <ClipboardList className="w-6 h-6" />
+              </div>
+              <div>
+                <h4 className="text-base font-extrabold text-amber-900 dark:text-amber-400">Exit Survey Required</h4>
+                <p className="text-xs text-amber-800/90 dark:text-amber-300/80 mt-1 max-w-2xl leading-relaxed">
+                  You have not submitted the exit survey feedback form yet. Completing this survey is required for your final institute clearance.
+                </p>
+              </div>
+            </div>
+            <Button
+              onClick={() => navigate('/student/feedback')}
+              className="bg-amber-600 hover:bg-amber-700 text-white rounded-xl px-5 text-xs font-bold shrink-0 shadow-sm transition-transform active:scale-95"
+            >
+              Fill Feedback Survey
+            </Button>
+          </div>
+        )}
+
         <div className="flex items-start gap-3 bg-amber-50 dark:bg-amber-900/20 p-4 rounded-xl border border-amber-200 dark:border-amber-800 text-amber-800 dark:text-amber-300">
           <AlertTriangle className="w-5 h-5 shrink-0 mt-0.5 text-amber-500" />
           <div className="flex-1">

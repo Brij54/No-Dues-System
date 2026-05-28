@@ -25,6 +25,14 @@ public class StudentController {
         return ResponseEntity.ok(studentService.createStudent(entity));
     }
 
+    @GetMapping("/me")
+    @PreAuthorize("hasRole('STUDENT')")
+    public ResponseEntity<Student> getMyProfile(Principal principal) {
+        return studentService.getStudentByPrincipal(principal)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+
     @GetMapping("/{id}")
     @PreAuthorize("hasAnyRole('SUPERADMIN','DEPARTMENTADMIN','STUDENT')")
     public ResponseEntity<Student> getStudentById(@PathVariable String id) {

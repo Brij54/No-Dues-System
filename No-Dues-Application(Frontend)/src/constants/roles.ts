@@ -10,17 +10,21 @@ export type RoleType = (typeof Role)[keyof typeof Role];
 export const FINANCE_DEPT_NAME = 'FINANCE';
 
 export const DEPARTMENT_ROLES = [
-  { key: 'academics', label: 'Academics Department' },
-  { key: 'clubs', label: 'Clubs Department' },
-  { key: 'finance', label: 'Finance Department' },
-  { key: 'hostel', label: 'Hostel (Warden)' },
-  { key: 'it', label: 'IT Department' },
-  { key: 'library', label: 'Library (Librarian)' },
-  { key: 'lab', label: 'Lab (Lab Assistant)' },
-  { key: 'placement', label: 'Placement Committee' },
-  { key: 'penalty', label: 'Penalty Department' },
-  { key: 'sports', label: 'Sports (Coach)' },
+  { key: 'academics_dt_mtech_imtech', label: 'Academics (DT, M.Tech & IMTech)' },
+  { key: 'club', label: 'Club' },
+  { key: 'finance', label: 'Finance' },
+  { key: 'hostel_female', label: 'Hostel (Female)' },
+  { key: 'hostel_male', label: 'Hostel (Male)' },
+  { key: 'it', label: 'IT' },
+  { key: 'library', label: 'Library' },
+  { key: 'lab_ceems', label: 'Lab (CEEMS)' },
+  { key: 'lab_hides', label: 'Lab (HIDES)' },
+  { key: 'lab_physics', label: 'Lab (Physics)' },
+  { key: 'placement', label: 'Placement' },
+  { key: 'sports', label: 'Sports' },
   { key: 'pending_degree', label: 'Pending Degree' },
+  { key: 'penalty', label: 'Penalty' },
+  { key: 'academics_ms_phd', label: 'Academics (MS & PHD)' },
 ] as const;
 
 export const DUE_STATUS = {

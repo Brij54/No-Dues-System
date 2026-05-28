@@ -262,8 +262,6 @@ export default function StudentsPage() {
             size="sm"
             icon={<Upload className="w-4 h-4" />}
             onClick={() => setShowBulkUpload(true)}
-            disabled={students.length > 0 || localStorage.getItem('bulk_upload_students_done') === 'true'}
-            title={students.length > 0 || localStorage.getItem('bulk_upload_students_done') === 'true' ? "Bulk upload can only be performed once" : undefined}
           >
             Bulk Upload
           </Button>
@@ -361,17 +359,6 @@ export default function StudentsPage() {
         }
       >
         <div className="space-y-6">
-
-          {/* Warning Banner */}
-          <div className="p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl text-amber-800 dark:text-amber-300 flex items-start gap-3">
-            <AlertTriangle className="w-5 h-5 shrink-0 mt-0.5 text-amber-500" />
-            <div>
-              <p className="text-sm font-bold">Important Notice</p>
-              <p className="text-xs opacity-90 mt-0.5">
-                Bulk upload can only be performed **once**. Please ensure that all records are complete and accurate before confirming the upload.
-              </p>
-            </div>
-          </div>
 
           <div className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 gap-4">
             <div>

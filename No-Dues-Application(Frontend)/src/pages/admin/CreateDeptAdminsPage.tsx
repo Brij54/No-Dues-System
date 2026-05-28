@@ -118,13 +118,22 @@ export default function CreateDeptAdminsPage() {
         const deptName = selectedDept.name.toUpperCase();
         if (deptName.includes('PENALTY')) deptRole = 'PENALTY_DEPARTMENT';
         else if (deptName.includes('FINANCE')) deptRole = 'FINANCE_DEPARTMENT';
+        else if (deptName.includes('HOSTEL') && deptName.includes('FEMALE')) deptRole = 'HOSTEL_FEMALE_WARDEN';
+        else if (deptName.includes('HOSTEL') && deptName.includes('MALE')) deptRole = 'HOSTEL_MALE_WARDEN';
         else if (deptName.includes('HOSTEL')) deptRole = 'HOSTEL_WARDEN';
         else if (deptName.includes('IT')) deptRole = 'IT_DEPARTMENT';
+        else if (deptName.includes('LAB') && deptName.includes('CEEMS')) deptRole = 'LAB_CEEMS_ASSISTANT';
+        else if (deptName.includes('LAB') && deptName.includes('HIDES')) deptRole = 'LAB_HIDES_ASSISTANT';
+        else if (deptName.includes('LAB') && deptName.includes('PHYSICS')) deptRole = 'LAB_PHYSICS_ASSISTANT';
         else if (deptName.includes('LAB')) deptRole = 'LAB_ASSISTANT';
         else if (deptName.includes('LIBRARY')) deptRole = 'LIBRARY_LIBRARIAN';
         else if (deptName.includes('PLACEMENT')) deptRole = 'PLACEMENT_COMMITTEE';
         else if (deptName.includes('SPORTS')) deptRole = 'SPORTS_COACH';
         else if (deptName.includes('CLUB')) deptRole = 'CLUBS_DEPARTMENT';
+        else if (deptName.includes('ACADEMICS') && (deptName.includes('DT') || deptName.includes('M.TECH') || deptName.includes('IMTECH'))) deptRole = 'ACADEMICS_DT_DEPARTMENT';
+        else if (deptName.includes('ACADEMICS') && (deptName.includes('MS') || deptName.includes('PHD') || deptName.includes('PH.D'))) deptRole = 'ACADEMICS_MS_PHD_DEPARTMENT';
+        else if (deptName.includes('ACADEMICS')) deptRole = 'ACADEMICS_DEPARTMENT';
+        else if (deptName.includes('PENDING DEGREE') || deptName.includes('PENDING_DEGREE')) deptRole = 'PENDING_DEGREE_DEPARTMENT';
 
         if (deptRole) {
           try {

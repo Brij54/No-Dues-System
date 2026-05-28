@@ -18,7 +18,14 @@ export function isTokenExpired(token: string): boolean {
 export function getTokenRoles(token: string): string[] {
   const decoded = decodeToken(token);
   if (!decoded) return [];
-  return decoded.resource_access?.['backend-api']?.roles ?? [];
+  const getClientId = (): string => {
+    if (typeof window !== 'undefined' && window._env_?.REACT_APP_KEYCLOAK_CLIENT_ID) {
+      return window._env_.REACT_APP_KEYCLOAK_CLIENT_ID;
+    }
+    return process.env.REACT_APP_KEYCLOAK_CLIENT_ID || 'backend-api';
+  };
+  const clientId = getClientId();
+  return decoded.resource_access?.[clientId]?.roles ?? [];
 }
 
 export function getTokenExpiresAt(token: string): Date | null {

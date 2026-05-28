@@ -192,6 +192,7 @@ public class DueService {
         }
         dueRepository.saveAll(pendingDues);
         student.setTotalPendingAmount(0.0);
+        student.setNoDueStatus("CLEARED");
         studentRepository.save(student);
     }
 

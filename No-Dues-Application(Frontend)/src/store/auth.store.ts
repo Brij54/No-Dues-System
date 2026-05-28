@@ -5,6 +5,24 @@ import { decodeToken, isTokenExpired } from '../utils/jwt';
 import type { DecodedToken } from '../types/auth.types';
 import { Role, FINANCE_DEPT_NAME } from '../constants/roles';
 
+declare global {
+  interface Window {
+    _env_?: {
+      REACT_APP_API_URL?: string;
+      REACT_APP_KEYCLOAK_CLIENT_ID?: string;
+    };
+  }
+}
+
+const getClientUrl = (): string => {
+  if (typeof window !== 'undefined' && window._env_?.REACT_APP_KEYCLOAK_CLIENT_ID) {
+    return window._env_.REACT_APP_KEYCLOAK_CLIENT_ID;
+  }
+  return process.env.REACT_APP_KEYCLOAK_CLIENT_ID || 'backend-api';
+};
+
+const KEYCLOAK_CLIENT_ID = getClientUrl();
+
 interface AuthStore {
   accessToken: string | null;
   refreshToken: string | null;
@@ -87,13 +105,13 @@ export const useAuthStore = create<AuthStore>()(
       hasRole: (role: string) => {
         const { user, accessToken } = get();
         if (!user || !accessToken || isTokenExpired(accessToken)) return false;
-        const roles = user.resource_access?.['backend-api']?.roles ?? [];
+        const roles = user.resource_access?.[KEYCLOAK_CLIENT_ID]?.roles ?? [];
         return roles.includes(role);
       },
 
       getRoles: () => {
         const { user } = get();
-        return user?.resource_access?.['backend-api']?.roles ?? [];
+        return user?.resource_access?.[KEYCLOAK_CLIENT_ID]?.roles ?? [];
       },
 
       getPrimaryRole: () => {

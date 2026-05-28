@@ -31,7 +31,9 @@ public class EmailService {
                 "Temporary Password: %s\n\n" +
                 "Please log in and you will be prompted to update this temporary password.\n\n" +
                 "Best Regards,\n" +
-                "No Dues Admin Team",
+                "Application Team\n" +
+                "IIIT Bangalore\n" +
+                "application@iiitb.ac.in",
                 name, toEmail, password
             );
 
@@ -59,7 +61,9 @@ public class EmailService {
                 "This OTP is valid for 10 minutes.\n\n" +
                 "If you did not request this, please ignore this email.\n\n" +
                 "Best Regards,\n" +
-                "No Dues Admin Team",
+                "Application Team\n" +
+                "IIIT Bangalore\n" +
+                "application@iiitb.ac.in",
                 otp
             );
 
@@ -89,7 +93,9 @@ public class EmailService {
                 "Payment Date: %s\n\n" +
                 "Your student dashboard has been updated accordingly.\n\n" +
                 "Best Regards,\n" +
-                "No Dues Admin Team",
+                "Application Team\n" +
+                "IIIT Bangalore\n" +
+                "application@iiitb.ac.in",
                 studentName, amountPaid, referenceNo, paymentDateStr
             );
 

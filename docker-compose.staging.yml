@@ -1,0 +1,61 @@
+# ═══════════════════════════════════════════════════════════════
+#  No-Dues-System — STAGING (docker-compose.staging.yml)
+# ═══════════════════════════════════════════════════════════════
+# Usage:
+#   docker compose -f docker-compose.staging.yml up -d
+#
+# Prerequisites:
+#   - External networks: proxy, db-net (shared server infra)
+#   - Shared Keycloak, PostgreSQL, MongoDB, MySQL on the server
+#   - Create realm "iiitb-staging" in shared Keycloak
+#   - Nginx Proxy Manager routing domains to these containers
+#
+# Domains (configure in Nginx Proxy Manager):
+#   - nodues.staging.iiitb.net     → no-dues-frontend:80
+#   - noduesapi.staging.iiitb.net  → no-dues-backend:8082
+#
+# Shared Keycloak: keycloak.staging.iiitb.net (separate server compose)
+# ═══════════════════════════════════════════════════════════════
+
+services:
+
+  # ─── Backend (Spring Boot) ────────────────────────────────
+  nodues-backend:
+    image: 172.16.202.56:5000/no-dues-be:latest
+    container_name: no-dues-backend
+    env_file: .env.staging
+
+    # expose:
+    #   - "8082"
+
+    restart: on-failure
+    networks:
+      - proxy
+      - db-net
+
+
+  # ─── Frontend (React Nginx) ───────────────────────────────
+  nodues-frontend:
+    image: 172.16.202.56:5000/no-dues-fe:latest
+    container_name: no-dues-frontend
+    env_file: .env.staging
+
+    # volumes:
+    #   - ./No-Dues-Application(Frontend)/nginx.staging.conf:/etc/nginx/conf.d/default.conf:ro
+
+    # expose:
+    #   - "80"
+
+    depends_on:
+      - backend
+
+    networks:
+      - proxy
+
+
+# ─── Networks (use existing shared server infra) ───────────
+networks:
+  proxy:
+    external: true
+  db-net:
+    external: true
