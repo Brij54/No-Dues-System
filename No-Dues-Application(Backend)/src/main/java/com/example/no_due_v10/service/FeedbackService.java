@@ -8,6 +8,7 @@ import com.example.no_due_v10.entity.Feedback;
 import com.example.no_due_v10.entity.Student;
 import com.example.no_due_v10.dto.FeedbackRequest;
 import java.security.Principal;
+import java.util.List;
 import java.util.Optional;
 
 @Service()
@@ -21,6 +22,10 @@ public class FeedbackService {
 
     @Autowired
     private KeycloakAuthService keycloakAuthService;
+
+    public List<Feedback> getAllFeedback() {
+        return feedbackRepository.findAll();
+    }
 
     public Optional<Feedback> getFeedbackForStudent(Principal principal) {
         String studentId = keycloakAuthService.getUserId(principal);

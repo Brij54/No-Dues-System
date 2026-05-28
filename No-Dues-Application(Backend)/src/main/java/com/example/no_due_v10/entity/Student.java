@@ -17,6 +17,7 @@ import jakarta.persistence.OneToMany;
 import jakarta.persistence.CascadeType;
 import java.util.List;
 import java.util.ArrayList;
+import java.time.LocalDateTime;
 
 @Entity()
 @Builder()
@@ -51,6 +52,12 @@ public class Student {
 
     @Column(nullable = false)
     private String noDueStatus;
+
+    @Column(nullable = false)
+    private Boolean emailSent = false;
+
+    @Column(name = "last_email_sent_at")
+    private LocalDateTime lastEmailSentAt;
 
     @OneToMany(mappedBy = "student", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Due> dues = new ArrayList<>();

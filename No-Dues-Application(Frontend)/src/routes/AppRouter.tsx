@@ -16,6 +16,7 @@ import StudentsPage from '../pages/admin/StudentsPage';
 import DepartmentsPage from '../pages/admin/DepartmentsPage';
 import TransactionsPage from '../pages/admin/TransactionsPage';
 import CreateDeptAdminsPage from '../pages/admin/CreateDeptAdminsPage';
+import FeedbackReviewPage from '../pages/admin/FeedbackReviewPage';
 
 // Student pages
 import StudentDashboard from '../pages/student/StudentDashboard';
@@ -66,6 +67,7 @@ export default function AppRouter() {
           <Route path="admin/departments" element={<DepartmentsPage />} />
           <Route path="admin/create-dept-admins" element={<CreateDeptAdminsPage />} />
           <Route path="admin/transactions" element={<TransactionsPage />} />
+          <Route path="admin/feedback" element={<FeedbackReviewPage />} />
           <Route path="admin/settings" element={<ProfilePage />} />
         </Route>
 

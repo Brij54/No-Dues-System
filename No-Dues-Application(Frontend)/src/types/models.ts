@@ -8,6 +8,8 @@ export interface Student {
   gender?: string;
   totalPendingAmount: number;
   noDueStatus: string; // "PENDING" | "CLEARED"
+  emailSent?: boolean;
+  lastEmailSentAt?: string;
   dues?: Due[];
   payments?: Payment[];
 }

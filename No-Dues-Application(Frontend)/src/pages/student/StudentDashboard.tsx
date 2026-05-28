@@ -333,13 +333,13 @@ export default function StudentDashboard() {
           </div>
         )}
 
-        <div className="flex items-start gap-3 bg-amber-50 dark:bg-amber-900/20 p-4 rounded-xl border border-amber-200 dark:border-amber-800 text-amber-800 dark:text-amber-300">
+        {/* <div className="flex items-start gap-3 bg-amber-50 dark:bg-amber-900/20 p-4 rounded-xl border border-amber-200 dark:border-amber-800 text-amber-800 dark:text-amber-300">
           <AlertTriangle className="w-5 h-5 shrink-0 mt-0.5 text-amber-500" />
           <div className="flex-1">
             <h4 className="text-sm font-semibold">Payment updates may take up to 48 hours to reflect</h4>
             <p className="text-xs opacity-90 mt-0.5">If your payment status hasn't changed after 48 hours, please contact the respective department directly.</p>
           </div>
-        </div>
+        </div> */}
       </div>
 
       {/* Recent Payments & Departments Split */}

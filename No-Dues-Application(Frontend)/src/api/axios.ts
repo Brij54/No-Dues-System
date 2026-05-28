@@ -36,17 +36,33 @@ const api = axios.create({
   timeout: 15000,
 });
 
-// Request interceptor — attach JWT
+// Public endpoints that must never receive a Bearer token.
+// Sending an expired token to these routes causes Spring Security's
+// opaque-token introspector to return 401 even though they are permitAll().
+const PUBLIC_ENDPOINTS = [
+  '/auth/login',
+  '/auth/register',
+  '/auth/forgot-password',
+  '/auth/reset-password',
+];
+
+// Request interceptor — attach JWT only for protected endpoints
 api.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('access_token');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
+    const isPublic = PUBLIC_ENDPOINTS.some((url) => config.url?.includes(url));
+    if (!isPublic) {
+      const token = localStorage.getItem('access_token');
+      if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+      }
     }
     return config;
   },
   (error) => Promise.reject(error)
 );
+
+// Auth pages where a 401 must NOT trigger a redirect to /login
+const AUTH_PAGES = ['/login', '/forgot-password'];
 
 // Response interceptor — handle errors globally
 api.interceptors.response.use(
@@ -59,7 +75,8 @@ api.interceptors.response.use(
       localStorage.removeItem('access_token');
       localStorage.removeItem('refresh_token');
       localStorage.removeItem('auth_user');
-      if (window.location.pathname !== '/login') {
+      const onAuthPage = AUTH_PAGES.some((p) => window.location.pathname.startsWith(p));
+      if (!onAuthPage) {
         toast.error('Session expired. Please log in again.');
         window.location.href = '/login';
       }

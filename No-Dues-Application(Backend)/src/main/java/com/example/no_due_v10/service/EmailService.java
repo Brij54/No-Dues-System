@@ -16,13 +16,13 @@ public class EmailService {
     @org.springframework.beans.factory.annotation.Value("${spring.mail.username}")
     private String fromEmail;
 
-    public void sendWelcomeEmail(String toEmail, String name, String password) {
+    public boolean sendWelcomeEmail(String toEmail, String name, String password) {
         try {
             SimpleMailMessage message = new SimpleMailMessage();
             message.setFrom(fromEmail);
             message.setTo(toEmail);
             message.setSubject("Welcome to No Dues Management System!");
-            
+
             String body = String.format(
                 "Hello %s,\n\n" +
                 "Your account for the No Dues Management System has been created.\n\n" +
@@ -39,11 +39,12 @@ public class EmailService {
 
             message.setText(body);
             mailSender.send(message);
-            
+
             log.info("Welcome email sent successfully to {}", toEmail);
+            return true;
         } catch (Exception e) {
             log.error("Failed to send welcome email to {}: {}", toEmail, e.getMessage());
-            // We catch and log this so it doesn't rollback the entire transaction if SMTP fails
+            return false;
         }
     }
 
