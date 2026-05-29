@@ -1,0 +1,82 @@
+version: "3.9"
+
+services:
+
+  postgres:
+    image: postgres:latest
+    container_name: nodues-prod-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres_admin
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: keycloak_db
+    volumes:
+      - /opt/production/data/nodues/postgres:/var/lib/postgresql/data
+    networks:
+      - no-dues-db-net
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:latest
+    container_name: nodues-prod-keycloak
+    restart: unless-stopped
+    command: start
+    depends_on:
+      - postgres
+    environment:
+      KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN}
+      KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://postgres:5432/keycloak_db
+      KC_DB_USERNAME: postgres_admin
+      KC_DB_PASSWORD: ${POSTGRES_PASSWORD}
+
+      KC_HTTP_ENABLED: "true"
+      KC_PROXY_HEADERS: "xforwarded"
+      KC_HOSTNAME: ${KC_HOSTNAME}
+      KC_HOSTNAME_STRICT: "true"
+      KC_HOSTNAME_STRICT_HTTPS: "true":
+    networks:
+      - no-dues-db-net
+      - no-dues-network
+
+  mysql:
+    image: mysql:8.4
+    container_name: nodues-prod-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${DB_NAME}
+      MYSQL_USER: ${DB_USER}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - /opt/production/data/nodues/mysql:/var/lib/mysql
+    networks:
+      - no-dues-db-net
+
+  nodues-backend:
+    image: 172.16.202.56:5000/no-dues-be:latest
+    container_name: nodues-prod-backend
+    env_file: .env.production
+    depends_on:
+      - mysql
+      - keycloak
+    restart: unless-stopped
+    networks:
+      - no-dues-db-net
+      - no-dues-network
+
+  nodues-frontend:
+    image: 172.16.202.56:5000/no-dues-fe:latest
+    container_name: nodues-prod-frontend
+    depends_on:
+      - nodues-backend
+    restart: unless-stopped
+    networks:
+      - no-dues-network
+
+networks:
+  no-dues-db-net:
+    driver: bridge
+
+  no-dues-network:
+    external: true

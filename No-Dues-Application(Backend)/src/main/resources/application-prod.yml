@@ -2,15 +2,89 @@
 # PRODUCTION SPRING PROFILE CONFIGURATION (application-prod.yml)
 # =========================================================================
 
-spring:
-  jpa:
-    hibernate:
-      ddl-auto: validate  # CRITICAL: Validate schema only! Do NOT mutate production tables.
-    show-sql: false      # Turn off SQL dumps in production to maximize performance and security
+server:
+  port: ${SERVER_PORT}
 
-# Production Logging Configuration
 logging:
   level:
-    root: WARN
-    com.example.no_due_v10: INFO
-    org.springframework.web: WARN
+    root: INFO
+    com.example.no_due_v10: DEBUG
+    org.springframework.web: INFO
+    org.springframework.security: DEBUG
+    org.keycloak: DEBUG
+
+spring:
+  main:
+    lazy-initialization: ${SPRING_MAIN_LAZY_INITIALIZATION:true}
+
+  web:
+    cors:
+      allowed-origins: ${FRONTEND_URL}
+      allow-credentials: true
+
+  jpa:
+    hibernate:
+      ddl-auto: update  # Automatically update database structure for staging migrations
+    show-sql: true
+
+  datasource:
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  mail:
+    host: ${MAIL_HOST}
+    port: ${MAIL_PORT}
+    username: ${MAIL_USERNAME}
+    password: ${MAIL_PASSWORD}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+            required: true
+
+  security:
+    debug: true
+    oauth2:
+      client:
+        registration:
+          keycloak:
+            client-id: ${KEYCLOAK_CLIENT_ID}
+            client-secret: ${KEYCLOAK_CLIENT_SECRET}
+            authorization-grant-type: authorization_code
+            scope: openid, profile, email
+        provider:
+          keycloak:
+            issuer-uri: ${KEYCLOAK_SERVER_URL}/realms/${KEYCLOAK_REALM}
+            authorization-uri: ${KEYCLOAK_SERVER_URL}/realms/${KEYCLOAK_REALM}/protocol/openid-connect/auth
+            token-uri: ${KEYCLOAK_SERVER_URL}/realms/${KEYCLOAK_REALM}/protocol/openid-connect/token
+            user-info-uri: ${KEYCLOAK_SERVER_URL}/realms/${KEYCLOAK_REALM}/protocol/openid-connect/userinfo
+            jwk-set-uri: ${KEYCLOAK_SERVER_URL}/realms/${KEYCLOAK_REALM}/protocol/openid-connect/certs
+            redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
+
+      resourceserver:
+        opaquetoken:
+          introspection-uri: ${KEYCLOAK_SERVER_URL}/realms/${KEYCLOAK_REALM}/protocol/openid-connect/token/introspect
+          client-id: ${KEYCLOAK_CLIENT_ID}
+          client-secret: ${KEYCLOAK_CLIENT_SECRET}
+
+# ── Keycloak Admin Client ──
+keycloak:
+  auth-server-url: ${KEYCLOAK_SERVER_URL}
+  realm: ${KEYCLOAK_REALM}
+  default-role: STUDENT
+  roles: SUPERADMIN,DEPARTMENTADMIN,STUDENT,ACADEMICS_DEPARTMENT,CLUBS_DEPARTMENT,FINANCE_DEPARTMENT,HOSTEL_WARDEN,IT_DEPARTMENT,LIBRARY_LIBRARIAN,LAB_ASSISTANT,PLACEMENT_COMMITTEE,SPORTS_COACH,PENDING_DEGREE_DEPARTMENT,PENALTY_DEPARTMENT,ACADEMICS_DT_DEPARTMENT,ACADEMICS_MS_PHD_DEPARTMENT,LAB_CEEMS_ASSISTANT,LAB_HIDES_ASSISTANT,LAB_PHYSICS_ASSISTANT,HOSTEL_FEMALE_WARDEN,HOSTEL_MALE_WARDEN
+  admin:
+    client-id: ${KEYCLOAK_CLIENT_ID}
+    client-secret: ${KEYCLOAK_CLIENT_SECRET}
+
+# ── Razorpay Configuration ──
+razorpay:
+  key: ${RAZORPAY_KEY}
+  secret: ${RAZORPAY_SECRET}
+  webhook:
+    secret: ${WEBHOOK_SECRET}
+
