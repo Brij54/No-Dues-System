@@ -1,5 +1,5 @@
 import { useEffect, useState, useMemo } from 'react';
-import { Search, Download, Upload, CheckCircle, AlertTriangle } from 'lucide-react';
+import { Search, Download, Upload, CheckCircle } from 'lucide-react';
 import DataTable from '../../components/ui/DataTable';
 import EmptyState from '../../components/ui/EmptyState';
 import Avatar from '../../components/ui/Avatar';
@@ -90,7 +90,7 @@ export default function StudentsPage() {
         const rawStatus = params.value ?? '';
         const s = rawStatus.toLowerCase();
         const isNoDues = s === 'no-dues' || s === 'no_dues' || s === 'cleared';
-        
+
         let label = rawStatus || 'Dues Pending';
         if (isNoDues) label = 'No Dues';
         else if (s === 'dues-pending' || s === 'dues_pending' || s === 'pending') label = 'Dues Pending';
@@ -205,25 +205,23 @@ export default function StudentsPage() {
       setProgress(80);
 
       let created = 0;
+      let alreadyExists = 0;
       let failed = 0;
-      const detailMessages: string[] = [];
 
-      response.data.forEach(res => {
-        if (res.includes('User created successfully')) {
-          created++;
-        } else {
-          failed++;
-          detailMessages.push(res);
-        }
+      response.data.forEach((res: string) => {
+        if (res.includes('User created successfully')) { created++; }
+        else if (res.includes('User already exists')) { alreadyExists++; }
+        else { failed++; }
       });
 
-      if (failed > 0) {
-        toast.error(`${failed} users failed or already existed.`);
-        console.warn('Failed bulk uploads:', detailMessages);
-      }
       if (created > 0) {
-        toast.success(`${created} students created successfully!`);
-        localStorage.setItem('bulk_upload_students_done', 'true');
+        toast.success(`${created} student(s) created successfully.`);
+      }
+      if (alreadyExists > 0) {
+        toast(`${alreadyExists} student(s) already existed — skipped.`, { icon: 'ℹ️' });
+      }
+      if (failed > 0) {
+        toast.error(`${failed} student(s) failed to upload.`);
       }
 
       setPreview(null);
@@ -433,17 +431,12 @@ export default function StudentsPage() {
           {preview && (
             <Card>
               <div className="mb-4">
-                <h3 className="text-md font-semibold text-slate-900 dark:text-white">
-                  Upload Preview
-                </h3>
+                <h3 className="text-md font-semibold text-slate-900 dark:text-white">Upload Preview</h3>
                 <p className="text-xs text-slate-500 mt-1">
-                  <span className="text-emerald-600 font-semibold">
-                    {preview.successCount} valid rows
-                  </span>
-                  {' · '}
-                  <span className="text-red-600 font-semibold">
-                    {preview.failedCount} failed rows
-                  </span>
+                  <span className="text-emerald-600 font-semibold">{preview.successCount} valid rows</span>
+                  {preview.failedCount > 0 && (
+                    <> · <span className="text-red-600 font-semibold">{preview.failedCount} invalid rows</span></>
+                  )}
                 </p>
               </div>
 

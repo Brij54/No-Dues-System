@@ -190,7 +190,7 @@ export default function CreateDeptAdminsPage() {
       <div>
         <h1 className="text-2xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
           <Building2 className="w-7 h-7 text-indigo-600 dark:text-indigo-400" />
-          Create Department Admins
+          Department Admins
         </h1>
         <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
           Add new department administrators and assign them to active departments.
@@ -303,9 +303,7 @@ export default function CreateDeptAdminsPage() {
                 <p className="leading-relaxed">
                   No password field is required. The system will automatically generate a secure, temporary password and email it directly to the new admin along with their login instructions.
                 </p>
-                <p className="leading-relaxed">
-                  Upon their first login, they will be prompted to set a new permanent password.
-                </p>
+            
               </div>
             </div>
           </Card>

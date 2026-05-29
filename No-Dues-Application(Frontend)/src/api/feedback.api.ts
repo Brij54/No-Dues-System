@@ -42,4 +42,5 @@ export const feedbackApi = {
   get: () => api.get<FeedbackRecord | null>(API.FEEDBACK.BASE),
   checkStatus: () => api.get<{ submitted: boolean }>(API.FEEDBACK.STATUS),
   submit: (data: FeedbackSubmission) => api.post<FeedbackRecord>(API.FEEDBACK.BASE, data),
+  getAll: () => api.get<FeedbackRecord[]>(API.FEEDBACK.ALL),
 };

@@ -21,6 +21,7 @@ import {
   Receipt,
   Menu,
   ClipboardList,
+  MessageSquare,
 } from "lucide-react";
 import { clsx } from "clsx";
 
@@ -53,7 +54,7 @@ function getSidebarItems(
         icon: <Building2 className="w-5 h-5" />,
       },
       {
-        label: "Create Department Admins",
+        label: "Admins",
         path: "/admin/create-dept-admins",
         icon: <Users className="w-5 h-5" />,
       },
@@ -61,6 +62,11 @@ function getSidebarItems(
         label: "Transactions",
         path: "/admin/transactions",
         icon: <Receipt className="w-5 h-5" />,
+      },
+      {
+        label: "Feedback",
+        path: "/admin/feedback",
+        icon: <MessageSquare className="w-5 h-5" />,
       },
       {
         label: "Settings",

@@ -12,4 +12,6 @@ public interface StudentRepository extends JpaRepository<Student, String> {
     // repo_method_id: repo_find_student_by_id | Fetch student by their String primary key
     @Query(value = "SELECT s FROM Student s WHERE s.id = :id", nativeQuery = false)
     Optional<Student> findStudentById(String id);
+
+    Optional<Student> findByEmail(String email);
 }

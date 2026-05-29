@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Link } from "react-router-dom";
 import {
   ArrowLeft,
@@ -21,10 +21,12 @@ export default function ForgotPasswordPage() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const submittingRef = useRef(false);
 
   const handleSendOtp = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email) return;
+    if (!email || submittingRef.current) return;
+    submittingRef.current = true;
     setLoading(true);
     try {
       await authApi.forgotPassword(email);
@@ -34,6 +36,7 @@ export default function ForgotPasswordPage() {
       toast.error(err.response?.data || "Failed to send OTP");
     } finally {
       setLoading(false);
+      submittingRef.current = false;
     }
   };
 
@@ -264,7 +267,11 @@ export default function ForgotPasswordPage() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full bg-[#2D88D4] hover:bg-[#2373b5] text-white py-3 rounded-xl font-semibold transition duration-200"
+                className={`w-full text-white py-3 rounded-xl font-semibold transition duration-200 ${
+                  loading
+                    ? "bg-[#2D88D4] opacity-60 cursor-not-allowed pointer-events-none"
+                    : "bg-[#2D88D4] hover:bg-[#2373b5]"
+                }`}
               >
                 {loading ? "Sending OTP..." : "Send OTP"}
               </button>
@@ -359,7 +366,11 @@ export default function ForgotPasswordPage() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full bg-[#2D88D4] hover:bg-[#2373b5] text-white py-3 rounded-xl font-semibold transition duration-200"
+                className={`w-full text-white py-3 rounded-xl font-semibold transition duration-200 ${
+                  loading
+                    ? "bg-[#2D88D4] opacity-60 cursor-not-allowed pointer-events-none"
+                    : "bg-[#2D88D4] hover:bg-[#2373b5]"
+                }`}
               >
                 {loading ? "Resetting..." : "Reset Password"}
               </button>

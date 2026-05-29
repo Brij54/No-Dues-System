@@ -8,6 +8,7 @@ import com.example.no_due_v10.service.FeedbackService;
 import com.example.no_due_v10.entity.Feedback;
 import com.example.no_due_v10.dto.FeedbackRequest;
 import java.security.Principal;
+import java.util.List;
 import java.util.Map;
 
 @RestController()
@@ -16,6 +17,12 @@ public class FeedbackController {
 
     @Autowired
     private FeedbackService feedbackService;
+
+    @GetMapping(value = "/all")
+    @PreAuthorize("hasRole('SUPERADMIN')")
+    public ResponseEntity<List<Feedback>> getAllFeedback() {
+        return ResponseEntity.ok(feedbackService.getAllFeedback());
+    }
 
     @GetMapping()
     @PreAuthorize("hasRole('STUDENT')")

@@ -48,5 +48,6 @@ export const API = {
   FEEDBACK: {
     BASE: `${BASE}/feedback`,
     STATUS: `${BASE}/feedback/status`,
+    ALL: `${BASE}/feedback/all`,
   },
 } as const;

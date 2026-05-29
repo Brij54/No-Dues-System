@@ -167,12 +167,17 @@ public class KeycloakAuthService {
                 log.warn("No default role configured, skipping role assignment for user {}", keycloakUserId);
             }
 
-            // 8. Send Welcome Email
-            emailService.sendWelcomeEmail(
-                    (String) authMap.get("email"),
-                    (String) authMap.get("firstName") + " " + authMap.get("lastName"),
-                    generatedPassword
-            );
+            // 8. Send Welcome Email — only for non-Student resources (dept admins etc.)
+            if (!"Student".equals(resourceName)) {
+                String firstName = (String) authMap.get("firstName");
+                String lastName = (String) authMap.get("lastName");
+                String fullName = (firstName != null ? firstName : "") + " " + (lastName != null ? lastName : "");
+                emailService.sendWelcomeEmail(
+                        (String) authMap.get("email"),
+                        fullName.trim(),
+                        generatedPassword
+                );
+            }
 
             return "User created successfully";
 
@@ -302,12 +307,17 @@ public class KeycloakAuthService {
                     log.warn("No default role configured, skipping role assignment for user {}", keycloakUserId);
                 }
 
-                // 8. Send Welcome Email
-                emailService.sendWelcomeEmail(
-                        (String) authMap.get("email"),
-                        (String) authMap.get("firstName") + " " + authMap.get("lastName"),
-                        generatedPassword
-                );
+                // 8. Send Welcome Email — only for non-Student resources
+                if (!"Student".equals(resourceName)) {
+                    String firstName = (String) authMap.get("firstName");
+                    String lastName = (String) authMap.get("lastName");
+                    String fullName = (firstName != null ? firstName : "") + " " + (lastName != null ? lastName : "");
+                    emailService.sendWelcomeEmail(
+                            (String) authMap.get("email"),
+                            fullName.trim(),
+                            generatedPassword
+                    );
+                }
 
                 return "User created successfully";
 
@@ -579,7 +589,7 @@ public class KeycloakAuthService {
                         existingUsers = keycloakRealm.users().search(usernameStr, true);
                     }
                     if (existingUsers != null && !existingUsers.isEmpty()) {
-                        log.info("User with email/username {} already exists in Keycloak. Skipping creation and email.", emailStr);
+                        log.info("User with email/username {} already exists in Keycloak. Skipping.", emailStr);
                         results.add(authMap.get("userName") + " -> User already exists");
                         continue;
                     }
@@ -756,22 +766,7 @@ public class KeycloakAuthService {
                         );
                     }
 
-                    // =====================================
-                    // SEND EMAIL
-                    // =====================================
-
-                    emailService.sendWelcomeEmail(
-                            (String) authMap.get("email"),
-                            (String) authMap.get("firstName")
-                                    + " "
-                                    + authMap.get("lastName"),
-                            generatedPassword
-                    );
-
-                    results.add(
-                            authMap.get("userName")
-                                    + " -> User created successfully"
-                    );
+                    results.add(authMap.get("userName") + " -> User created successfully");
 
                 } catch (Exception e) {
 
