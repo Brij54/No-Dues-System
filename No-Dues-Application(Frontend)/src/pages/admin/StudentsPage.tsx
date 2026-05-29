@@ -1,5 +1,5 @@
 import { useEffect, useState, useMemo } from 'react';
-import { Search, Download, Upload, CheckCircle, AlertTriangle, Info } from 'lucide-react';
+import { Search, Download, Upload, CheckCircle } from 'lucide-react';
 import DataTable from '../../components/ui/DataTable';
 import EmptyState from '../../components/ui/EmptyState';
 import Avatar from '../../components/ui/Avatar';
@@ -16,8 +16,6 @@ import type { Student } from '../../types/models';
 import type { ColDef } from 'ag-grid-community';
 import toast from 'react-hot-toast';
 
-type EmailStatus = 'sent' | 'failed' | 'resent' | 'resend_failed' | 'already_sent' | 'pending';
-
 interface PreviewRow {
   rollNumber: string;
   name: string;
@@ -25,7 +23,6 @@ interface PreviewRow {
   gender: string;
   status: 'success' | 'failed';
   error?: string;
-  emailStatus?: EmailStatus;
 }
 
 export default function StudentsPage() {
@@ -104,29 +101,6 @@ export default function StudentsPage() {
               <span style={{ width: 6, height: 6, borderRadius: '50%', background: isNoDues ? '#10b981' : '#f59e0b' }}></span>
               {label}
             </span>
-          </div>
-        );
-      },
-    },
-    {
-      headerName: 'Welcome Email',
-      field: 'emailSent',
-      minWidth: 150,
-      cellRenderer: (params: any) => {
-        const sent = params.value as boolean | undefined;
-        return (
-          <div style={{ display: 'flex', alignItems: 'center', height: '100%' }}>
-            {sent === true ? (
-              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, padding: '2px 10px', borderRadius: 999, fontSize: 11, fontWeight: 600, background: '#ecfdf5', color: '#059669' }}>
-                <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#10b981' }}></span>
-                Sent
-              </span>
-            ) : (
-              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, padding: '2px 10px', borderRadius: 999, fontSize: 11, fontWeight: 600, background: '#fef2f2', color: '#dc2626' }}>
-                <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#ef4444' }}></span>
-                Not Sent
-              </span>
-            )}
           </div>
         );
       },
@@ -231,33 +205,23 @@ export default function StudentsPage() {
       setProgress(80);
 
       let created = 0;
-      let emailSentCount = 0;
-      let emailFailedCount = 0;
-      let resentCount = 0;
-      let resentFailedCount = 0;
-      let alreadySentCount = 0;
+      let alreadyExists = 0;
       let failed = 0;
 
       response.data.forEach((res: string) => {
-        if (res.includes('User created successfully, Email sent')) { created++; emailSentCount++; }
-        else if (res.includes('User created successfully, Email FAILED')) { created++; emailFailedCount++; }
-        else if (res.includes('User already exists, Email resent')) { resentCount++; }
-        else if (res.includes('User already exists, Email FAILED again')) { resentFailedCount++; }
-        else if (res.includes('User already exists, Email already sent')) { alreadySentCount++; }
+        if (res.includes('User created successfully')) { created++; }
+        else if (res.includes('User already exists')) { alreadyExists++; }
         else { failed++; }
       });
 
-      if (emailFailedCount + resentFailedCount > 0) {
-        toast.error(`${emailFailedCount + resentFailedCount} email(s) failed to send. Re-upload to retry.`);
-      }
       if (created > 0) {
-        toast.success(`${created} student(s) created. ${emailSentCount} email(s) sent.`);
+        toast.success(`${created} student(s) created successfully.`);
       }
-      if (resentCount > 0) {
-        toast.success(`${resentCount} welcome email(s) resent to existing students.`);
+      if (alreadyExists > 0) {
+        toast(`${alreadyExists} student(s) already existed — skipped.`, { icon: 'ℹ️' });
       }
-      if (alreadySentCount > 0) {
-        toast(`${alreadySentCount} student(s) already had emails sent — skipped.`, { icon: 'ℹ️' });
+      if (failed > 0) {
+        toast.error(`${failed} student(s) failed to upload.`);
       }
 
       setPreview(null);
@@ -466,20 +430,14 @@ export default function StudentsPage() {
 
           {preview && (
             <Card>
-              <div className="mb-4 flex items-start justify-between">
-                <div>
-                  <h3 className="text-md font-semibold text-slate-900 dark:text-white">Upload Preview</h3>
-                  <p className="text-xs text-slate-500 mt-1">
-                    <span className="text-emerald-600 font-semibold">{preview.successCount} valid rows</span>
-                    {preview.failedCount > 0 && (
-                      <> · <span className="text-red-600 font-semibold">{preview.failedCount} invalid rows</span></>
-                    )}
-                  </p>
-                </div>
-                <div className="flex items-center gap-1.5 text-xs text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg px-3 py-2">
-                  <Info className="w-3.5 h-3.5 flex-shrink-0" />
-                  <span>Email status will appear in the Students table after upload</span>
-                </div>
+              <div className="mb-4">
+                <h3 className="text-md font-semibold text-slate-900 dark:text-white">Upload Preview</h3>
+                <p className="text-xs text-slate-500 mt-1">
+                  <span className="text-emerald-600 font-semibold">{preview.successCount} valid rows</span>
+                  {preview.failedCount > 0 && (
+                    <> · <span className="text-red-600 font-semibold">{preview.failedCount} invalid rows</span></>
+                  )}
+                </p>
               </div>
 
               <div className="overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-700">

@@ -167,26 +167,19 @@ public class KeycloakAuthService {
                 log.warn("No default role configured, skipping role assignment for user {}", keycloakUserId);
             }
 
-            // 8. Send Welcome Email and update emailSent flag
-            String firstName = (String) authMap.get("firstName");
-            String lastName = (String) authMap.get("lastName");
-            String fullName = (firstName != null ? firstName : "") + " " + (lastName != null ? lastName : "");
-            boolean emailSent = emailService.sendWelcomeEmail(
-                    (String) authMap.get("email"),
-                    fullName.trim(),
-                    generatedPassword
-            );
-
-            // 9. Persist email status on the saved entity
-            if (savedEntity instanceof com.example.no_due_v10.entity.Student) {
-                com.example.no_due_v10.entity.Student student = (com.example.no_due_v10.entity.Student) savedEntity;
-                student.setEmailSent(emailSent);
-                student.setLastEmailSentAt(java.time.LocalDateTime.now());
-                Method saveMethod2 = repository.getClass().getMethod("save", Object.class);
-                saveMethod2.invoke(repository, student);
+            // 8. Send Welcome Email — only for non-Student resources (dept admins etc.)
+            if (!"Student".equals(resourceName)) {
+                String firstName = (String) authMap.get("firstName");
+                String lastName = (String) authMap.get("lastName");
+                String fullName = (firstName != null ? firstName : "") + " " + (lastName != null ? lastName : "");
+                emailService.sendWelcomeEmail(
+                        (String) authMap.get("email"),
+                        fullName.trim(),
+                        generatedPassword
+                );
             }
 
-            return emailSent ? "User created successfully, Email sent" : "User created successfully, Email FAILED";
+            return "User created successfully";
 
         } catch (Exception e) {
             log.error("Unexpected error in addUser", e);
@@ -314,12 +307,17 @@ public class KeycloakAuthService {
                     log.warn("No default role configured, skipping role assignment for user {}", keycloakUserId);
                 }
 
-                // 8. Send Welcome Email
-                emailService.sendWelcomeEmail(
-                        (String) authMap.get("email"),
-                        (String) authMap.get("firstName") + " " + authMap.get("lastName"),
-                        generatedPassword
-                );
+                // 8. Send Welcome Email — only for non-Student resources
+                if (!"Student".equals(resourceName)) {
+                    String firstName = (String) authMap.get("firstName");
+                    String lastName = (String) authMap.get("lastName");
+                    String fullName = (firstName != null ? firstName : "") + " " + (lastName != null ? lastName : "");
+                    emailService.sendWelcomeEmail(
+                            (String) authMap.get("email"),
+                            fullName.trim(),
+                            generatedPassword
+                    );
+                }
 
                 return "User created successfully";
 
@@ -591,50 +589,8 @@ public class KeycloakAuthService {
                         existingUsers = keycloakRealm.users().search(usernameStr, true);
                     }
                     if (existingUsers != null && !existingUsers.isEmpty()) {
-                        // User already exists — check if welcome email was ever sent
-                        String keycloakUserId = existingUsers.get(0).getId();
-                        com.example.no_due_v10.repository.StudentRepository studentRepo = null;
-                        try {
-                            studentRepo = (com.example.no_due_v10.repository.StudentRepository)
-                                    applicationContext.getBean("studentRepository");
-                        } catch (Exception ignored) {}
-
-                        if (studentRepo != null && "Student".equals(resourceName)) {
-                            // Look up student by email
-                            com.example.no_due_v10.entity.Student existingStudent =
-                                    studentRepo.findByEmail(emailStr).orElse(null);
-
-                            if (existingStudent != null && !Boolean.TRUE.equals(existingStudent.getEmailSent())) {
-                                log.info("User {} exists but email was never sent. Generating new password and resending.", emailStr);
-
-                                // Generate new password and update Keycloak
-                                String newPassword = UUID.randomUUID().toString().substring(0, 8) + "@Xyz1";
-                                CredentialRepresentation newCred = new CredentialRepresentation();
-                                newCred.setTemporary(false);
-                                newCred.setType(CredentialRepresentation.PASSWORD);
-                                newCred.setValue(newPassword);
-                                keycloakRealm.users().get(keycloakUserId).resetPassword(newCred);
-
-                                String firstName = (String) authMap.get("firstName");
-                                String lastName = (String) authMap.get("lastName");
-                                String fullName = (firstName != null ? firstName : "") + " " + (lastName != null ? lastName : "");
-                                boolean resent = emailService.sendWelcomeEmail(emailStr, fullName.trim(), newPassword);
-
-                                existingStudent.setEmailSent(resent);
-                                existingStudent.setLastEmailSentAt(java.time.LocalDateTime.now());
-                                studentRepo.save(existingStudent);
-
-                                results.add(authMap.get("userName") + (resent
-                                        ? " -> User already exists, Email resent"
-                                        : " -> User already exists, Email FAILED again"));
-                            } else {
-                                log.info("User {} already exists and email was already sent. Skipping.", emailStr);
-                                results.add(authMap.get("userName") + " -> User already exists, Email already sent");
-                            }
-                        } else {
-                            log.info("User with email/username {} already exists in Keycloak. Skipping.", emailStr);
-                            results.add(authMap.get("userName") + " -> User already exists");
-                        }
+                        log.info("User with email/username {} already exists in Keycloak. Skipping.", emailStr);
+                        results.add(authMap.get("userName") + " -> User already exists");
                         continue;
                     }
 
@@ -810,32 +766,7 @@ public class KeycloakAuthService {
                         );
                     }
 
-                    // =====================================
-                    // SEND EMAIL + TRACK STATUS
-                    // =====================================
-
-                    String firstName = (String) authMap.get("firstName");
-                    String lastName = (String) authMap.get("lastName");
-                    String fullName = (firstName != null ? firstName : "") + " " + (lastName != null ? lastName : "");
-                    boolean emailSent = emailService.sendWelcomeEmail(
-                            (String) authMap.get("email"),
-                            fullName.trim(),
-                            generatedPassword
-                    );
-
-                    // Persist emailSent flag on entity
-                    if (savedEntity instanceof com.example.no_due_v10.entity.Student) {
-                        com.example.no_due_v10.entity.Student newStudent =
-                                (com.example.no_due_v10.entity.Student) savedEntity;
-                        newStudent.setEmailSent(emailSent);
-                        newStudent.setLastEmailSentAt(java.time.LocalDateTime.now());
-                        Method saveMethod2 = repository.getClass().getMethod("save", Object.class);
-                        saveMethod2.invoke(repository, newStudent);
-                    }
-
-                    results.add(authMap.get("userName") + (emailSent
-                            ? " -> User created successfully, Email sent"
-                            : " -> User created successfully, Email FAILED"));
+                    results.add(authMap.get("userName") + " -> User created successfully");
 
                 } catch (Exception e) {
 
