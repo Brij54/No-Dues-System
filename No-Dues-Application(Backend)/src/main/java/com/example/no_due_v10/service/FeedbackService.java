@@ -10,6 +10,7 @@ import com.example.no_due_v10.dto.FeedbackRequest;
 import java.security.Principal;
 import java.util.List;
 import java.util.Optional;
+import com.example.no_due_v10.exception.*;
 
 @Service()
 public class FeedbackService {
@@ -41,11 +42,11 @@ public class FeedbackService {
         String studentId = keycloakAuthService.getUserId(principal);
         
         if (feedbackRepository.existsByStudentId(studentId)) {
-            throw new RuntimeException("Feedback already submitted");
+            throw new ConflictException("Feedback already submitted");
         }
 
         Student student = studentRepository.findById(studentId)
-            .orElseThrow(() -> new RuntimeException("Student not found for ID: " + studentId));
+            .orElseThrow(() -> new ResourceNotFoundException("Student not found for ID: " + studentId));
 
         validateFeedbackRequest(request);
 

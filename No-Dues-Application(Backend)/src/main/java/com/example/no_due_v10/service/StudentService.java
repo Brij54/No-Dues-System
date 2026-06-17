@@ -9,6 +9,7 @@ import java.security.Principal;
 import com.example.no_due_v10.repository.DueRepository;
 import com.example.no_due_v10.entity.*;
 import com.example.no_due_v10.dto.*;
+import com.example.no_due_v10.exception.*;
 import java.time.*;
 
 @Service()
@@ -42,7 +43,7 @@ public class StudentService {
  * Comment      : Recalculates totalPendingAmount by adding the new due amount to the existing pending amount, and sets noDueStatus to PENDING.
  */
     public Student updateStudentPendingAmountAndDueStatus(UpdateStudentPendingAmountRequest request) {
-        Student student = studentRepository.findById(request.getStudentId()).orElseThrow(() -> new RuntimeException("Student not found with id: " + request.getStudentId()));
+        Student student = studentRepository.findById(request.getStudentId()).orElseThrow(() -> new ResourceNotFoundException("Student not found with id: " + request.getStudentId()));
         Double currentPending = student.getTotalPendingAmount() != null ? student.getTotalPendingAmount() : 0.0;
         student.setTotalPendingAmount(currentPending + request.getAdditionalAmount());
         student.setNoDueStatus("PENDING");
@@ -54,7 +55,7 @@ public class StudentService {
  * Comment      : Recalculates and updates the noDueStatus of a student based on their current totalPendingAmount. Sets status to CLEARED if no pending amount, otherwise PENDING.
  */
     public void updateStudentNoDueStatus(String studentId) {
-        Student student = studentRepository.findById(studentId).orElseThrow(() -> new RuntimeException("Student not found"));
+        Student student = studentRepository.findById(studentId).orElseThrow(() -> new ResourceNotFoundException("Student not found"));
         Double totalPending = student.getTotalPendingAmount();
         if (totalPending != null && totalPending <= 0.0) {
             student.setNoDueStatus("CLEARED");
@@ -78,7 +79,7 @@ public class StudentService {
  */
     public StudentPendingDuesSummaryResponse getStudentPendingDuesSummary(Principal principal) {
         String userId = keycloakAuthService.getUserId(principal);
-        Student student = studentRepository.findById(userId).orElseThrow(() -> new RuntimeException("Student not found"));
+        Student student = studentRepository.findById(userId).orElseThrow(() -> new ResourceNotFoundException("Student not found"));
         StudentPendingDuesSummaryResponse response = new StudentPendingDuesSummaryResponse();
         response.setTotalPendingAmount(student.getTotalPendingAmount());
         response.setNoDueStatus(student.getNoDueStatus());
@@ -93,7 +94,7 @@ public class StudentService {
  * Comment      : Recalculates the student's totalPendingAmount by summing all non-cleared Due records and updates noDueStatus accordingly.
  */
     public Student updateStudentTotalPendingAmount(String studentId) {
-        Student student = studentRepository.findById(studentId).orElseThrow(() -> new RuntimeException("Student not found with id: " + studentId));
+        Student student = studentRepository.findById(studentId).orElseThrow(() -> new ResourceNotFoundException("Student not found with id: " + studentId));
         // Use the status-agnostic sum query
         Double rawPending = dueRepository.sumAllPendingAmountByStudentId(studentId);
         double totalPending = rawPending != null ? rawPending : 0.0;

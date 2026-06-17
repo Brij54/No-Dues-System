@@ -7,9 +7,18 @@ export function formatCurrency(amount: number): string {
   }).format(amount);
 }
 
+export function parseUTCDate(dateStr: string): Date {
+  if (!dateStr) return new Date();
+  let parsed = dateStr;
+  if (dateStr.includes('T') && !dateStr.endsWith('Z') && !dateStr.endsWith('z') && !/[+-]\d{2}:?\d{2}$/.test(dateStr)) {
+    parsed = dateStr + 'Z';
+  }
+  return new Date(parsed);
+}
+
 export function formatDate(dateStr: string): string {
   if (!dateStr) return '—';
-  return new Date(dateStr).toLocaleDateString('en-IN', {
+  return parseUTCDate(dateStr).toLocaleDateString('en-IN', {
     day: '2-digit',
     month: 'short',
     year: 'numeric',
@@ -18,7 +27,7 @@ export function formatDate(dateStr: string): string {
 
 export function formatDateTime(dateStr: string): string {
   if (!dateStr) return '—';
-  return new Date(dateStr).toLocaleString('en-IN', {
+  return parseUTCDate(dateStr).toLocaleString('en-IN', {
     day: '2-digit',
     month: 'short',
     year: 'numeric',

@@ -22,8 +22,12 @@ spring:
     password: ${MAIL_PASSWORD}
     properties:
       mail:
+        debug: true
         smtp:
           auth: true
+          connectiontimeout: 10000
+          timeout: 10000
+          writetimeout: 10000
           starttls:
             enable: true
             required: true

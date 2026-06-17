@@ -537,12 +537,35 @@ public class KeycloakAuthService {
     public void resetUserPassword(String email, String newPassword) {
         RealmResource realmResource = keycloakAdmin.realm(realm);
 
-        // Find user by email
+        // 1. Try exact email match first
         List<UserRepresentation> users = realmResource.users().searchByEmail(email, true);
+
+        // 2. Fallback: non-exact (case-insensitive) email search
         if (users == null || users.isEmpty()) {
+            log.warn("Exact email search returned no results for '{}', trying non-exact search...", email);
+            users = realmResource.users().searchByEmail(email, false);
+            // Filter manually to ensure the email actually matches (case-insensitive)
+            if (users != null) {
+                final String emailLower = email.toLowerCase();
+                users = users.stream()
+                        .filter(u -> emailLower.equals(u.getEmail() != null ? u.getEmail().toLowerCase() : ""))
+                        .collect(java.util.stream.Collectors.toList());
+            }
+        }
+
+        // 3. Fallback: search by username (some accounts use email as username)
+        if (users == null || users.isEmpty()) {
+            log.warn("Email search still empty for '{}', trying username search...", email);
+            users = realmResource.users().search(email, true);
+        }
+
+        if (users == null || users.isEmpty()) {
+            log.error("No Keycloak user found for email: {}", email);
             throw new RuntimeException("User not found with email: " + email);
         }
+
         String userId = users.get(0).getId();
+        log.info("Found Keycloak user '{}' (id={}) for email reset", users.get(0).getUsername(), userId);
 
         // Reset password
         CredentialRepresentation credential = new CredentialRepresentation();

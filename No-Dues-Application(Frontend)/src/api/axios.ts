@@ -12,18 +12,18 @@ declare global {
 
 const getBaseURL = (): string => {
   if (typeof window !== 'undefined') {
-    // 1. Prioritize dynamic runtime environment variables from Docker/Nginx
-    if (window._env_?.REACT_APP_API_URL) {
-      return window._env_.REACT_APP_API_URL;
-    }
-
-    // 2. Secondary fallback via hostname detection
+    // 1. Prioritize fallback via hostname detection for robust staging/production behavior
     const hostname = window.location.hostname;
     if (hostname === 'nodues.staging.iiitb.net') {
       return 'https://noduesapi.staging.iiitb.net';
     }
     if (hostname === 'nodues.iiitb.net') {
       return 'https://noduesapi.iiitb.net';
+    }
+
+    // 2. Dynamic runtime environment variables from Docker/Nginx
+    if (window._env_?.REACT_APP_API_URL) {
+      return window._env_.REACT_APP_API_URL;
     }
   }
   // 3. Static build-time/development fallback
@@ -85,7 +85,8 @@ api.interceptors.response.use(
     } else if (status === 409) {
       toast.error(typeof message === 'string' ? message : 'Conflict: resource already exists.');
     } else if (status === 500) {
-      toast.error('Server error. Please try again later.');
+      const serverMsg = typeof message === 'string' ? message : null;
+      toast.error(serverMsg || 'Server error. Please try again later.');
     }
 
     return Promise.reject(error);

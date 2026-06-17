@@ -7,6 +7,7 @@ import { feedbackApi } from '../../api/feedback.api';
 import type { FeedbackRecord } from '../../api/feedback.api';
 import type { ColDef } from 'ag-grid-community';
 import toast from 'react-hot-toast';
+import { formatDateTime, parseUTCDate } from '../../utils/format';
 
 // ─── Rating display helpers ───────────────────────────────────────────────────
 
@@ -98,10 +99,7 @@ const CSV_HEADERS = [
 
 function formatSubmittedAt(value: string | undefined): string {
   if (!value) return '—';
-  return new Date(value).toLocaleString('en-IN', {
-    day: '2-digit', month: 'short', year: 'numeric',
-    hour: '2-digit', minute: '2-digit',
-  });
+  return formatDateTime(value);
 }
 
 function feedbackToRow(f: FeedbackRecord): string[] {
@@ -182,10 +180,7 @@ export default function FeedbackReviewPage() {
       valueGetter: (p: any) => {
         const v = p.data?.submittedAt;
         if (!v) return '—';
-        return new Date(v).toLocaleString('en-IN', {
-          day: '2-digit', month: 'short', year: 'numeric',
-          hour: '2-digit', minute: '2-digit',
-        });
+        return formatDateTime(v);
       },
     },
     // {
@@ -303,7 +298,7 @@ export default function FeedbackReviewPage() {
                 <div>
                   <p className="text-xs text-slate-400 mb-0.5">Submitted At</p>
                   <p className="font-medium text-slate-800 dark:text-slate-200">
-                    {new Date(selected.submittedAt).toLocaleString('en-IN', {
+                    {parseUTCDate(selected.submittedAt).toLocaleString('en-IN', {
                       day: '2-digit', month: 'long', year: 'numeric',
                       hour: '2-digit', minute: '2-digit',
                     })}

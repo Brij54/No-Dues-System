@@ -68,6 +68,7 @@ services:
   nodues-frontend:
     image: 172.16.202.56:5000/no-dues-fe:latest
     container_name: nodues-prod-frontend
+    env_file: .env.production
     depends_on:
       - nodues-backend
     restart: unless-stopped

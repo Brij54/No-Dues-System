@@ -58,7 +58,7 @@ import iiitLogo from '../images/iiit_logo.png';
 export default function AuthLayout() {
   return (
     <div
-      className="h-screen w-screen flex relative overflow-hidden"
+      className="min-h-screen lg:h-screen w-screen flex flex-col lg:flex-row relative overflow-y-auto lg:overflow-hidden"
       style={{
         backgroundImage: `url(${backgroundImage})`,
         backgroundSize: 'cover',
@@ -67,10 +67,10 @@ export default function AuthLayout() {
       }}
     >
       {/* Optional Dark Overlay */}
-      <div className="absolute inset-0 bg-black/20" />
+      <div className="absolute inset-0 bg-black/35 backdrop-blur-[1px]" />
 
-      {/* Left Branding Section */}
-      <div className="relative z-10 flex-1 flex flex-col justify-between items-center text-white px-10 py-12">
+      {/* Left Branding Section - Hidden on mobile, flex on desktop */}
+      <div className="relative z-10 hidden lg:flex lg:flex-1 lg:flex-col lg:justify-between lg:items-center text-white px-10 py-12">
         {/* Center Content */}
         <div className="flex flex-col items-center justify-center flex-1 text-center">
           {/* Logo */}
@@ -99,7 +99,6 @@ export default function AuthLayout() {
             <h2 className="text-4xl font-bold tracking-wide drop-shadow-lg">
               No-Dues Portal
             </h2>
-
           </div>
         </div>
 
@@ -150,17 +149,13 @@ export default function AuthLayout() {
               © 2026 International Institute of Information Technology -
               Bangalore
             </p>
-
-            {/* <p className="mt-1 text-white/70">
-              Support - admissions2026@iiitb.ac.in | +91 80 4140 7777
-            </p> */}
           </div>
         </div>
       </div>
 
-      {/* Right Form Section */}
-      <div className="relative z-10 w-full max-w-md bg-white shadow-2xl flex items-center justify-center px-8 overflow-y-auto">
-        <div className="w-full py-10">
+      {/* Right Form Section - Centered on mobile with transparent bg, sidebar on desktop */}
+      <div className="relative z-10 w-full lg:max-w-md lg:h-full bg-transparent lg:bg-white lg:shadow-2xl flex items-center justify-center px-4 sm:px-8 lg:px-10 overflow-y-auto">
+        <div className="w-full py-8 lg:py-10 flex items-center justify-center">
           <Outlet />
         </div>
       </div>

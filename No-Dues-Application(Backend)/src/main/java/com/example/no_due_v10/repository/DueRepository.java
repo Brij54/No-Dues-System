@@ -29,4 +29,26 @@ public interface DueRepository extends JpaRepository<Due, String> {
     // "DUES_PENDING" etc. are all counted as pending.
     @Query("SELECT COALESCE(SUM(d.amount - d.paidAmount), 0.0) FROM Due d WHERE d.student.id = :studentId AND LOWER(d.status) NOT IN ('cleared', 'no-dues', 'no_dues', 'no dues')")
     Double sumAllPendingAmountByStudentId(@Param("studentId") String studentId);
+
+    /**
+     * summary_query_id: repo_dept_pending_amounts_grouped
+     * Returns [studentId, departmentName, outstandingAmount] for all non-cleared dues.
+     * Used by SummaryService to build department-wise columns without N+1 queries.
+     */
+    @Query("SELECT d.student.id, d.department.name, COALESCE(SUM(d.amount - d.paidAmount), 0.0) " +
+           "FROM Due d " +
+           "WHERE d.department IS NOT NULL " +
+           "AND LOWER(d.status) NOT IN ('cleared', 'no-dues', 'no_dues', 'no dues') " +
+           "GROUP BY d.student.id, d.department.name")
+    List<Object[]> findDeptPendingAmountsGrouped();
+
+    /**
+     * summary_query_id: repo_total_due_amount_by_student
+     * Returns [studentId, totalDueAmount] — sum of ALL due amounts regardless of status.
+     * Used by SummaryService to compute the 'Total Due' column.
+     */
+    @Query("SELECT d.student.id, COALESCE(SUM(d.amount), 0.0) " +
+           "FROM Due d " +
+           "GROUP BY d.student.id")
+    List<Object[]> findTotalDueAmountByStudent();
 }

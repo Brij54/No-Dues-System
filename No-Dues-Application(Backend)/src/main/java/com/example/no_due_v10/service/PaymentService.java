@@ -11,6 +11,7 @@ import java.security.Principal;
 import com.example.no_due_v10.repository.StudentRepository;
 import com.example.no_due_v10.entity.*;
 import com.example.no_due_v10.dto.*;
+import com.example.no_due_v10.exception.*;
 import java.time.*;
 
 @Service()
@@ -35,7 +36,10 @@ public class PaymentService {
         boolean isSuperAdmin = authentication.getAuthorities().stream()
                 .anyMatch(a -> a.getAuthority().equalsIgnoreCase("ROLE_SUPERADMIN"));
 
-        if (isSuperAdmin) {
+        boolean isFinanceDeptAdmin = authentication.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equalsIgnoreCase("ROLE_FINANCE_DEPARTMENT"));
+
+        if (isSuperAdmin || isFinanceDeptAdmin) {
             return paymentRepository.findAll();
         }
 
@@ -75,7 +79,7 @@ public class PaymentService {
  */
     public Payment createPaymentRecord(CreatePaymentRequest request, Principal principal) {
         String userId = keycloakAuthService.getUserId(principal);
-        Student student = studentRepository.findById(userId).orElseThrow(() -> new RuntimeException("Student not found"));
+        Student student = studentRepository.findById(userId).orElseThrow(() -> new ResourceNotFoundException("Student not found"));
         Payment payment = new Payment();
         payment.setAmountPaid(request.getAmountPaid());
         payment.setTransactionReference(request.getTransactionReference());
@@ -94,8 +98,8 @@ public class PaymentService {
  */
     @Transactional
     public Payment verifyAndProcessPayment(String paymentId, String studentId) {
-        Payment payment = paymentRepository.findByIdWithStudent(paymentId).orElseThrow(() -> new RuntimeException("Payment not found with id: " + paymentId));
-        Student student = studentRepository.findStudentById(studentId).orElseThrow(() -> new RuntimeException("Student not found with id: " + studentId));
+        Payment payment = paymentRepository.findByIdWithStudent(paymentId).orElseThrow(() -> new ResourceNotFoundException("Payment not found with id: " + paymentId));
+        Student student = studentRepository.findStudentById(studentId).orElseThrow(() -> new ResourceNotFoundException("Student not found with id: " + studentId));
         
         Double amountPaid = payment.getAmountPaid();
         Double totalPendingAmount = student.getTotalPendingAmount();
@@ -234,7 +238,7 @@ public class PaymentService {
  * Comment      : Validates that the student exists, then retrieves all payment records for that student
  */
     public List<Payment> getPaymentsByStudent(String studentId) {
-        Student student = studentRepository.findById(studentId).orElseThrow(() -> new RuntimeException("Student not found with id: " + studentId));
+        Student student = studentRepository.findById(studentId).orElseThrow(() -> new ResourceNotFoundException("Student not found with id: " + studentId));
         List<Payment> payments = paymentRepository.findByStudentId(studentId);
         return payments;
     }

@@ -18,5 +18,16 @@ public interface PaymentRepository extends JpaRepository<Payment, String> {
 
     // repo_method_id: repo_find_payment_by_transaction_id | Fetch payment by Razorpay transaction/order ID
     Optional<Payment> findByTransactionId(String transactionId);
+
+    /**
+     * summary_query_id: repo_total_paid_amount_by_student
+     * Returns [studentId, totalPaidAmount] for all SUCCESS payments.
+     * Used by SummaryService to compute the 'Paid Amount' column without N+1 queries.
+     */
+    @Query("SELECT p.student.id, COALESCE(SUM(p.amountPaid), 0.0) " +
+           "FROM Payment p " +
+           "WHERE UPPER(p.paymentStatus) = 'SUCCESS' " +
+           "GROUP BY p.student.id")
+    List<Object[]> findTotalPaidAmountByStudent();
 }
 

@@ -47,7 +47,7 @@ services:
     #   - "80"
 
     depends_on:
-      - backend
+      - nodues-backend
 
     networks:
       - proxy

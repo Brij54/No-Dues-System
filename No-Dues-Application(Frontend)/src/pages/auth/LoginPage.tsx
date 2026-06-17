@@ -158,6 +158,7 @@ import { useAuth } from '../../hooks/useAuth';
 import { useAuthStore } from '../../store/auth.store';
 import { Role } from '../../constants/roles';
 import toast from 'react-hot-toast';
+import iiitLogo from '../../images/iiit_logo.png';
 
 const loginSchema = z.object({
   email: z.string().min(1, 'Username or email is required'),
@@ -211,8 +212,24 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-transparent">
-      <div className="w-full max-w-md bg-white rounded-2xl shadow-xl p-8">
+    <div className="flex items-center justify-center w-full bg-transparent py-4 lg:py-0">
+      <div className="w-full max-w-md bg-white rounded-2xl shadow-xl p-6 sm:p-8">
+        {/* Mobile branding */}
+        <div className="lg:hidden flex flex-col items-center mb-6 text-center">
+          <img
+            src={iiitLogo}
+            alt="IIIT-B Logo"
+            className="w-16 h-16 object-contain mb-3"
+          />
+          <h1 className="text-sm font-semibold text-gray-700 tracking-wider">
+            IIIT BANGALORE
+          </h1>
+          <h2 className="text-xs text-gray-500 font-medium mt-0.5">
+            No-Dues Portal
+          </h2>
+          <div className="w-12 h-0.5 bg-gray-200 my-3 rounded-full" />
+        </div>
+
         {/* Heading */}
         <h2 className="text-3xl font-bold text-center text-[#2D88D4] mb-8">
           Login

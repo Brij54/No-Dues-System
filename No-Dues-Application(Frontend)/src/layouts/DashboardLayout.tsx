@@ -22,6 +22,7 @@ import {
   Menu,
   ClipboardList,
   MessageSquare,
+  BarChart3,
 } from "lucide-react";
 import { clsx } from "clsx";
 
@@ -69,6 +70,11 @@ function getSidebarItems(
         icon: <MessageSquare className="w-5 h-5" />,
       },
       {
+        label: "Summary - No Dues",
+        path: "/admin/summary-no-dues",
+        icon: <BarChart3 className="w-5 h-5" />,
+      },
+      {
         label: "Settings",
         path: "/admin/settings",
         icon: <Settings className="w-5 h-5" />,
@@ -94,6 +100,12 @@ function getSidebarItems(
         label: "Transactions",
         path: "/department/transactions",
         icon: <Receipt className="w-5 h-5" />,
+      });
+      // Summary - No Dues: only Finance dept admin has access
+      items.push({
+        label: "Summary - No Dues",
+        path: "/department/summary-no-dues",
+        icon: <BarChart3 className="w-5 h-5" />,
       });
     }
     items.push({

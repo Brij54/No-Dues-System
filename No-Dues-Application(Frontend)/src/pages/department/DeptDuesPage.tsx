@@ -135,6 +135,7 @@ export default function DeptDuesPage() {
   // ─── Auth / department filtering ───
   const authStore       = useAuthStore();
   const managedDeptNames = authStore.getManagedDepartments();
+  const uploadKey = authStore.user?.sub ? `bulk_upload_dues_done_${authStore.user.sub}` : 'bulk_upload_dues_done';
 
   const adminDepartments = departments.filter((d) =>
     managedDeptNames.some((m) => {
@@ -175,7 +176,7 @@ export default function DeptDuesPage() {
     if (availableDepts.length > 0) {
       setBulkDeptId((id) => id || availableDepts[0].id);
     }
-  }, [departments]);
+  }, [departments, availableDepts]);
 
   // ─── Load Data ────────────────────────────────────────────────────────────
   const loadData = useCallback(async () => {
@@ -192,6 +193,12 @@ export default function DeptDuesPage() {
       setDues(duesRes.data);
       setDepartments(deptsRes.data);
 
+      // Clean up localStorage flag if no data is available
+      if (duesRes.data.length === 0) {
+        const currentUploadKey = authStore.user?.sub ? `bulk_upload_dues_done_${authStore.user.sub}` : 'bulk_upload_dues_done';
+        localStorage.removeItem(currentUploadKey);
+      }
+
       // Fallback: extract students from due records if the student list API fails
       let allStudents = studentsRes.data;
       if (!allStudents || allStudents.length === 0) {
@@ -205,7 +212,7 @@ export default function DeptDuesPage() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [authStore.user?.sub]);
 
   useEffect(() => { loadData(); }, [loadData]);
 
@@ -321,15 +328,15 @@ export default function DeptDuesPage() {
         if (!rollNumber) {
           rowStatus = 'failed';
           error     = 'Missing required field: Roll Number';
-        } else if (rawAmount === undefined || rawAmount === null || rawAmount === '' || isNaN(amount) || amount <= 0) {
+        } else if (rawAmount === undefined || rawAmount === null || rawAmount === '' || isNaN(amount) || amount < 0) {
           rowStatus = 'failed';
-          error     = 'Amount must be a number greater than 0';
+          error     = 'Amount must be a number greater than or equal to 0';
         } else if (noDuesStatus && !(BULK_VALID_STATUSES as readonly string[]).includes(noDuesStatus)) {
           rowStatus = 'failed';
           error     = `Invalid No Dues Status "${noDuesStatus}". Allowed: No-Dues, Dues-Pending.`;
         } else {
           const student = students.find(s => s.rollNumber.toLowerCase() === rollNumber.toLowerCase());
-          if (!student && students.length > 0) {
+          if (!student) {
             rowStatus = 'failed';
             error     = 'Student not found with this Roll Number';
           }
@@ -357,34 +364,50 @@ export default function DeptDuesPage() {
     const valid = bulkPreview.data.filter(r => r.rowStatus === 'success');
     if (valid.length === 0) return;
 
+    // Strategy 1 Check: Fail entire upload if there are any validation errors
+    if (bulkPreview.failedCount > 0) {
+      toast.error('Cannot proceed. Please fix all validation errors before uploading.');
+      return;
+    }
+
     setBulkUploading(true);
     let created = 0;
-    let failed  = 0;
+    let hasErrorOccurred = false;
 
     for (let i = 0; i < valid.length; i++) {
       const row     = valid[i];
       const student = students.find(s => s.rollNumber.toLowerCase() === row.rollNumber.toLowerCase());
+      if (!student) {
+        toast.error(`Student not found for roll number ${row.rollNumber}. Skipping.`);
+        continue;
+      }
 
       try {
         await duesApi.createForStudent({
-          studentId:    student ? student.id : row.rollNumber,
+          studentId:    student.id,
           description:  row.description,
           amount:       row.amount,
-          // Send noDuesStatus exactly as uploaded — no transformation
           status:       row.noDuesStatus || undefined,
           departmentId: bulkDeptId || undefined,
         } as any);
         created++;
-      } catch {
-        failed++;
+      } catch (err: any) {
+        hasErrorOccurred = true;
+        toast.error(`Upload halted due to server error at row ${i + 1}.`);
+        break; // Stop immediately under Strategy 1
       }
       setBulkProgress(50 + Math.round(((i + 1) / valid.length) * 50));
     }
 
-    toast.success(`Uploaded ${created} due(s). ${failed > 0 ? `${failed} failed.` : ''}`);
-    if (created > 0) {
-      localStorage.setItem('bulk_upload_dues_done', 'true');
+    if (hasErrorOccurred) {
+      setBulkUploading(false);
+      setBulkProgress(0);
+      await loadData();
+      return;
     }
+
+    toast.success(`Successfully uploaded all ${created} due record(s).`);
+    localStorage.setItem(uploadKey, 'true');
     setBulkPreview(null);
     setBulkFile(null);
     setBulkUploading(false);
@@ -536,8 +559,8 @@ export default function DeptDuesPage() {
             variant="outline"
             icon={<Upload className="w-4 h-4" />}
             onClick={() => setShowBulkUpload(true)}
-            disabled={dues.length > 0 || localStorage.getItem('bulk_upload_dues_done') === 'true'}
-            title={dues.length > 0 || localStorage.getItem('bulk_upload_dues_done') === 'true' ? "Bulk upload can only be performed once" : undefined}
+            disabled={localStorage.getItem(uploadKey) === 'true' && dues.length > 0}
+            title={localStorage.getItem(uploadKey) === 'true' && dues.length > 0 ? "Bulk upload can only be performed once" : undefined}
           >
             Bulk Upload
           </Button>
@@ -700,7 +723,8 @@ export default function DeptDuesPage() {
                 icon={<CheckCircle className="w-4 h-4" />}
                 onClick={confirmBulkUpload}
                 loading={bulkUploading}
-                disabled={bulkPreview.successCount === 0}
+                disabled={bulkPreview.successCount === 0 || bulkPreview.failedCount > 0}
+                title={bulkPreview.failedCount > 0 ? "Resolve all errors in preview to enable upload" : undefined}
               >
                 Confirm Upload ({bulkPreview.successCount})
               </Button>

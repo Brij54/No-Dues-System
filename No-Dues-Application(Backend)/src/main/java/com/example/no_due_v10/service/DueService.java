@@ -11,6 +11,7 @@ import com.example.no_due_v10.repository.StudentRepository;
 import com.example.no_due_v10.repository.DepartmentRepository;
 import com.example.no_due_v10.entity.*;
 import com.example.no_due_v10.dto.*;
+import com.example.no_due_v10.exception.*;
 import java.time.*;
 
 @Service()
@@ -27,7 +28,7 @@ public class DueService {
     }
 
     public List<Due> getDuesByDepartmentAdmin(String userId) {
-        User admin = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("Authenticated user not found"));
+        User admin = userRepository.findById(userId).orElseThrow(() -> new ResourceNotFoundException("Authenticated user not found"));
         if (admin.getDepartment() != null) {
             return dueRepository.findByDepartmentId(admin.getDepartment().getId());
         }
@@ -60,9 +61,9 @@ public class DueService {
  */
     public Due createDueForStudent(CreateDueRequest request, Principal principal) {
         String userId = keycloakAuthService.getUserId(principal);
-        User admin = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("Authenticated user not found"));
+        User admin = userRepository.findById(userId).orElseThrow(() -> new ResourceNotFoundException("Authenticated user not found"));
 
-        Student student = studentRepository.findById(request.getStudentId()).orElseThrow(() -> new RuntimeException("Student not found"));
+        Student student = studentRepository.findById(request.getStudentId()).orElseThrow(() -> new ResourceNotFoundException("Student not found"));
 
         // Resolve department: prefer admin's linked department, fall back to departmentId in request
         String deptId = (admin.getDepartment() != null)
@@ -70,16 +71,22 @@ public class DueService {
                 : request.getDepartmentId();
 
         if (deptId == null || deptId.isBlank()) {
-            throw new RuntimeException(
+            throw new BadRequestException(
                 "Unable to determine department. Your account is not linked to a department. " +
                 "Please contact your administrator or provide a departmentId in the request.");
         }
 
         Department department = departmentRepository.findById(deptId)
-                .orElseThrow(() -> new RuntimeException("Department not found: " + deptId));
+                .orElseThrow(() -> new ResourceNotFoundException("Department not found: " + deptId));
 
         if (!department.getIsActive()) {
-            throw new RuntimeException("Department is not active");
+            throw new ConflictException("Department is not active");
+        }
+
+        // Self-heal: If the admin is not linked to a department in the DB, link them permanently now
+        if (admin.getDepartment() == null) {
+            admin.setDepartment(department);
+            userRepository.save(admin);
         }
         // Determine the initial status: use request status if provided, otherwise default to "Dues-Pending"
         String initialStatus = (request.getStatus() != null) 
@@ -112,7 +119,7 @@ public class DueService {
  */
     public Due updateDue(String dueId, UpdateDueRequest request, Principal principal) {
         String userId = keycloakAuthService.getUserId(principal);
-        Due due = dueRepository.findById(dueId).orElseThrow(() -> new RuntimeException("Due not found"));
+        Due due = dueRepository.findById(dueId).orElseThrow(() -> new ResourceNotFoundException("Due not found"));
         if (request.getDescription() != null) {
             due.setDescription(request.getDescription());
         }
@@ -175,14 +182,14 @@ public class DueService {
  */
     public void clearStudentDues(ClearStudentDuesRequest request, Principal principal) {
         String userId = keycloakAuthService.getUserId(principal);
-        Student student = studentRepository.findById(userId).orElseThrow(() -> new RuntimeException("Student not found"));
+        Student student = studentRepository.findById(userId).orElseThrow(() -> new ResourceNotFoundException("Student not found"));
         List<Due> pendingDues = dueRepository.findByStudentIdAndStatus(student.getId(), "PENDING");
         if (pendingDues.isEmpty()) {
-            throw new RuntimeException("No pending dues found for student");
+            throw new BadRequestException("No pending dues found for student");
         }
         Double totalPending = pendingDues.stream().mapToDouble(Due::getAmount).sum();
         if (!request.getPaymentAmount().equals(totalPending)) {
-            throw new RuntimeException("Payment amount does not exactly match total pending dues of " + totalPending);
+            throw new BadRequestException("Payment amount does not exactly match total pending dues of " + totalPending);
         }
         LocalDate now = LocalDate.now();
         for (Due due : pendingDues) {

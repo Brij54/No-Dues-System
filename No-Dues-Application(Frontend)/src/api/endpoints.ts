@@ -50,4 +50,8 @@ export const API = {
     STATUS: `${BASE}/feedback/status`,
     ALL: `${BASE}/feedback/all`,
   },
+  SUMMARY: {
+    NO_DUES: `${BASE}/summary/no-dues`,
+    STATS: `${BASE}/summary/no-dues/stats`,
+  },
 } as const;

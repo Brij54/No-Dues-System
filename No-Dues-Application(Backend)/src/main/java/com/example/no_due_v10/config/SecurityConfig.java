@@ -41,6 +41,9 @@ public class SecurityConfig {
     @Value("${" + "spring.security.oauth2.resourceserver.opaquetoken.client-secret}")
     private String clientSecret;
 
+    @Value("${spring.web.cors.allowed-origins:https://nodues.iiitb.net}")
+    private String allowedOrigins;
+
     /**
      * Main security filter chain.
      *  - /auth/register and /auth/login are open (no token required)
@@ -116,32 +119,43 @@ public class SecurityConfig {
     }
 
     @Bean
-public CorsConfigurationSource corsConfigurationSource() {
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
 
-    CorsConfiguration configuration = new CorsConfiguration();
+        List<String> origins = new java.util.ArrayList<>();
+        if (allowedOrigins != null && !allowedOrigins.trim().isEmpty()) {
+            for (String origin : allowedOrigins.split(",")) {
+                origins.add(origin.trim());
+            }
+        }
+        // Always include localhost for local development convenience
+        if (!origins.contains("http://localhost:3000")) {
+            origins.add("http://localhost:3000");
+        }
+        if (!origins.contains("http://localhost:5173")) {
+            origins.add("http://localhost:5173");
+        }
 
-    configuration.setAllowedOrigins(List.of(
-            "https://nodues.staging.iiitb.net"
-    ));
+        configuration.setAllowedOrigins(origins);
 
-    configuration.setAllowedMethods(List.of(
-            "GET",
-            "POST",
-            "PUT",
-            "DELETE",
-            "OPTIONS"
-    ));
+        configuration.setAllowedMethods(List.of(
+                "GET",
+                "POST",
+                "PUT",
+                "DELETE",
+                "OPTIONS"
+        ));
 
-    configuration.setAllowedHeaders(List.of("*"));
+        configuration.setAllowedHeaders(List.of("*"));
 
-    configuration.setAllowCredentials(true);
+        configuration.setAllowCredentials(true);
 
-    UrlBasedCorsConfigurationSource source =
-            new UrlBasedCorsConfigurationSource();
+        UrlBasedCorsConfigurationSource source =
+                new UrlBasedCorsConfigurationSource();
 
-    source.registerCorsConfiguration("/**", configuration);
+        source.registerCorsConfiguration("/**", configuration);
 
-    return source;
-}
+        return source;
+    }
 }
 

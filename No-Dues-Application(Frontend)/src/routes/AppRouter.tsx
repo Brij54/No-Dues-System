@@ -17,6 +17,7 @@ import DepartmentsPage from '../pages/admin/DepartmentsPage';
 import TransactionsPage from '../pages/admin/TransactionsPage';
 import CreateDeptAdminsPage from '../pages/admin/CreateDeptAdminsPage';
 import FeedbackReviewPage from '../pages/admin/FeedbackReviewPage';
+import NoDuesSummaryPage from '../pages/admin/NoDuesSummaryPage';
 
 // Student pages
 import StudentDashboard from '../pages/student/StudentDashboard';
@@ -68,6 +69,7 @@ export default function AppRouter() {
           <Route path="admin/create-dept-admins" element={<CreateDeptAdminsPage />} />
           <Route path="admin/transactions" element={<TransactionsPage />} />
           <Route path="admin/feedback" element={<FeedbackReviewPage />} />
+          <Route path="admin/summary-no-dues" element={<NoDuesSummaryPage />} />
           <Route path="admin/settings" element={<ProfilePage />} />
         </Route>
 
@@ -97,6 +99,8 @@ export default function AppRouter() {
           <Route path="department" element={<DeptDashboard />} />
           <Route path="department/dues" element={<DeptDuesPage />} />
           <Route path="department/transactions" element={<TransactionsPage />} />
+          {/* Summary - No Dues: accessible to Finance Dept Admin; page guards non-finance admins internally */}
+          <Route path="department/summary-no-dues" element={<NoDuesSummaryPage />} />
           <Route path="department/settings" element={<ProfilePage />} />
         </Route>
 

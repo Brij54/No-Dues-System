@@ -7,6 +7,7 @@ import com.example.no_due_v10.repository.DepartmentRepository;
 import org.springframework.http.ResponseEntity;
 import com.example.no_due_v10.entity.*;
 import com.example.no_due_v10.dto.*;
+import com.example.no_due_v10.exception.*;
 import java.time.*;
 
 @Service()
@@ -46,7 +47,7 @@ public class DepartmentService {
  * Comment      : Updates the name and/or description of an existing department. Uses default findById and save methods.
  */
     public Department updateDepartment(String id, UpdateDepartmentRequest request) {
-        Department department = departmentRepository.findById(id).orElseThrow(() -> new RuntimeException("Department not found"));
+        Department department = departmentRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Department not found"));
         if (request.getName() != null) {
             department.setName(request.getName());
         }

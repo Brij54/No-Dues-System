@@ -105,13 +105,35 @@ export const useAuthStore = create<AuthStore>()(
       hasRole: (role: string) => {
         const { user, accessToken } = get();
         if (!user || !accessToken || isTokenExpired(accessToken)) return false;
-        const roles = user.resource_access?.[KEYCLOAK_CLIENT_ID]?.roles ?? [];
+        
+        let roles = user.resource_access?.[KEYCLOAK_CLIENT_ID]?.roles ?? [];
+        
+        // Dynamic client ID fallback for resilient deployments
+        if (roles.length === 0 && user.resource_access) {
+          const activeClient = Object.keys(user.resource_access).find(key => key !== 'account');
+          if (activeClient) {
+            roles = user.resource_access[activeClient]?.roles ?? [];
+          }
+        }
+        
         return roles.includes(role);
       },
 
       getRoles: () => {
         const { user } = get();
-        return user?.resource_access?.[KEYCLOAK_CLIENT_ID]?.roles ?? [];
+        if (!user) return [];
+        
+        let roles = user.resource_access?.[KEYCLOAK_CLIENT_ID]?.roles ?? [];
+        
+        // Dynamic client ID fallback for resilient deployments
+        if (roles.length === 0 && user.resource_access) {
+          const activeClient = Object.keys(user.resource_access).find(key => key !== 'account');
+          if (activeClient) {
+            roles = user.resource_access[activeClient]?.roles ?? [];
+          }
+        }
+        
+        return roles;
       },
 
       getPrimaryRole: () => {

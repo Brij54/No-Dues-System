@@ -67,7 +67,7 @@ export default function StudentDashboard() {
       if (allDuesRes.status === 'fulfilled') {
         const dues = allDuesRes.value.data;
         const grouped: Record<string, { pendingAmount: number; totalAmount: number; isCleared: boolean; remarks: string }> = {};
-        
+
         let calculatedTotalPending = 0;
 
         // Group by department
@@ -76,12 +76,12 @@ export default function StudentDashboard() {
           if (!grouped[deptName]) {
             grouped[deptName] = { pendingAmount: 0, totalAmount: 0, isCleared: true, remarks: '' };
           }
-          
+
           const pending = computePendingAmount(d);
           calculatedTotalPending += pending;
-          
+
           grouped[deptName].totalAmount += (d.amount ?? 0);
-          
+
           if (d.status?.toUpperCase() !== 'CLEARED' && d.status?.toUpperCase() !== 'PAID' && pending > 0) {
             grouped[deptName].isCleared = false;
             grouped[deptName].pendingAmount += pending;
@@ -92,7 +92,7 @@ export default function StudentDashboard() {
             }
           }
         });
-        
+
         setTotalPending(calculatedTotalPending);
 
         // Set default departments if none exist for UI completeness
@@ -166,9 +166,10 @@ export default function StudentDashboard() {
         toast.error('Payment failed. Please try again.');
       });
 
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
-      toast.error('Could not initiate payment');
+      const errorMsg = err.response?.data?.message || 'Could not initiate payment';
+      toast.error(errorMsg);
     } finally {
       setIsPaying(false);
     }

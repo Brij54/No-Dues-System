@@ -11,7 +11,7 @@ services:
     restart: always
     environment:
       MYSQL_DATABASE: no_dues
-      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD:-5712}
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
     ports:
       - "3308:3306"
     volumes:
@@ -40,7 +40,7 @@ services:
       # Database connection string pointing to the db container
       DB_URL: jdbc:mysql://db:3306/no_dues?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
       DB_USERNAME: root
-      DB_PASSWORD: ${DB_PASSWORD:-5712}
+      DB_PASSWORD: ${DB_PASSWORD}
       
       # Active Spring Profile (local, staging, prod)
       SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-local}
